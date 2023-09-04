@@ -6,12 +6,15 @@ opaque ResultPointed : NonemptyType
 def Result : Type := ResultPointed.type
 instance : Nonempty Result := ResultPointed.property
 
-private opaque ObjectHandlePointed : NonemptyType
-private def ObjectHandle : Type := ObjectHandlePointed.type
-private instance : Nonempty ObjectHandle := ObjectHandlePointed.property
+opaque ObjectPointed : NonemptyType
+def Object : Type := ObjectPointed.type
+instance : Nonempty Object := ObjectPointed.property
 
 @[extern "lean_gcc_jit_context_acquire"]
 opaque Context.acquire : IO Context
+
+@[extern "lean_gcc_jit_context_release"]
+opaque Context.release : Context → IO PUnit
 
 inductive StrOption :=
   | ProgName
@@ -57,6 +60,9 @@ opaque Context.addDriverOption: @Context → @String → IO PUnit
 @[extern "lean_gcc_jit_context_compile"]
 opaque Context.compile: @Context → IO Result
 
+@[extern "lean_gcc_jit_context_compile"]
+opaque Result.release: Result → IO PUnit
+
 inductive OutputKind :=
   | Assembler
   | ObjectFile
@@ -83,9 +89,4 @@ opaque Result.getCode: @Result → @String → USize
 
 @[extern "lean_gcc_jit_result_get_global"]
 opaque Result.getGlobal: @Result → @String → USize
-
-structure Object :=
-  private mk::
-  getContext: Context
-  private handle : ObjectHandle
 

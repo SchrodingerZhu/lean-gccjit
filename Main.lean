@@ -7,5 +7,6 @@ def main : IO Unit := do
   ctx.setBoolPrintErrorsToStderr true
   ctx.compileToFile OutputKind.ObjectFile "/tmp/test.o"
   ctx.dumpToFile "/tmp/test.data" true
+  ctx.release
   IO.println s!"{ctx.getFirstError}"
 

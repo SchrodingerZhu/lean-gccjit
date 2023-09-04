@@ -2,42 +2,53 @@
 #include <cstdio>
 #include <lean/lean.h>
 #include <libgccjit.h>
-#include <stdint.h>
+#include <cassert>
 namespace lean_gccjit {
 
-static void empty_foreach(void *, b_lean_obj_arg) {}
+static_assert(sizeof(size_t) >= sizeof(void *), 
+  "size_t must be at least as large as a pointer");
 
-#define LEAN_GCC_JIT_DELCARE_EXTERNAL_CLASS(TYPE, RELEASE)                     \
-  static void lean_##TYPE##_finalize(void *value) { RELEASE }                  \
-  constexpr static lean_external_class TYPE##_class{                           \
-      .m_finalize = lean_##TYPE##_finalize,                                    \
-      .m_foreach = empty_foreach,                                              \
-  };                                                                           \
-  static inline TYPE *get_##TYPE(b_lean_obj_res obj) {                         \
-    return static_cast<TYPE *>(lean_get_external_data(obj));                   \
-  }                                                                            \
-  static inline lean_obj_res create_##TYPE(TYPE *value) {                      \
-    return lean_alloc_external(                                                \
-        const_cast<lean_external_class *>(&TYPE##_class), value);              \
+constexpr static inline bool POINTER_OF_64BIT = sizeof(size_t) == 8;
+
+// For those without release function, we use thin wrapper of them.
+template <typename T>
+static inline lean_obj_res wrap_pointer(T * ptr) {
+  size_t value = reinterpret_cast<size_t>(ptr);
+  if constexpr (POINTER_OF_64BIT) {
+    return lean_box(value);
+  } else {
+    return lean_box_usize(value);
   }
+}
 
-#define LEAN_GCC_JIT_DELCARE_EXTERNAL_CLASS_WITH_RELEASE(TYPE)                 \
-  LEAN_GCC_JIT_DELCARE_EXTERNAL_CLASS(                                         \
-      TYPE, TYPE##_release(static_cast<TYPE *>(value));)
+template <typename T>
+static inline T * unwrap_pointer(b_lean_obj_arg obj) {
+  if constexpr (POINTER_OF_64BIT) {
+    return reinterpret_cast<T *>(lean_unbox(obj));
+  } else {
+    return reinterpret_cast<T *>(lean_unbox_usize(obj));
+  }
+}
 
-LEAN_GCC_JIT_DELCARE_EXTERNAL_CLASS_WITH_RELEASE(gcc_jit_context);
-LEAN_GCC_JIT_DELCARE_EXTERNAL_CLASS_WITH_RELEASE(gcc_jit_result);
 
 extern "C" LEAN_EXPORT lean_obj_res
 lean_gcc_jit_context_acquire(lean_object * /* w */) {
-  auto ctx = create_gcc_jit_context(gcc_jit_context_acquire());
+  auto ctx = wrap_pointer<gcc_jit_context>(gcc_jit_context_acquire());
   return lean_io_result_mk_ok(ctx);
+};
+
+extern "C" LEAN_EXPORT lean_obj_res
+lean_gcc_jit_context_release(lean_obj_arg ctx, lean_object * /* w */) {
+  auto context = unwrap_pointer<gcc_jit_context>(ctx);
+  gcc_jit_context_release(context);
+  lean_dec(ctx);
+  return lean_io_result_mk_ok(lean_box(0));
 };
 
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_str_option(
     b_lean_obj_arg ctx, b_lean_obj_arg opt, b_lean_obj_arg value,
     lean_object * /* w */) {
-  auto context = get_gcc_jit_context(ctx);
+  auto context = unwrap_pointer<gcc_jit_context>(ctx);
   auto option = static_cast<gcc_jit_str_option>(lean_unbox(opt));
   if (option >= GCC_JIT_NUM_STR_OPTIONS) {
     auto error = lean_mk_io_error_invalid_argument(
@@ -52,7 +63,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_str_option(
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_int_option(
     b_lean_obj_arg ctx, b_lean_obj_arg opt, b_lean_obj_arg value,
     lean_object * /* w */) {
-  auto context = get_gcc_jit_context(ctx);
+  auto context = unwrap_pointer<gcc_jit_context>(ctx);
   auto option = static_cast<gcc_jit_int_option>(lean_unbox(opt));
   if (option >= GCC_JIT_NUM_INT_OPTIONS) {
     auto error = lean_mk_io_error_invalid_argument(
@@ -71,7 +82,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_int_option(
 
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_bool_option(
     b_lean_obj_arg ctx, uint8_t opt, uint8_t value, lean_object * /* w */) {
-  auto context = get_gcc_jit_context(ctx);
+  auto context = unwrap_pointer<gcc_jit_context>(ctx);
   auto option = static_cast<gcc_jit_bool_option>(opt);
   if (option >= GCC_JIT_NUM_BOOL_OPTIONS) {
     auto error = lean_mk_io_error_invalid_argument(
@@ -85,7 +96,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_bool_option(
 #define LEAN_GCC_JIT_SEPARATE_BOOL_OPTION(NAME)                                \
   extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_bool_##NAME(    \
       b_lean_obj_arg ctx, uint8_t value, lean_object * /* w */) {              \
-    auto context = get_gcc_jit_context(ctx);                                   \
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);                                   \
     gcc_jit_context_set_bool_##NAME(context, static_cast<int>(value));         \
     return lean_io_result_mk_ok(lean_box(0));                                  \
   }
@@ -98,7 +109,7 @@ LEAN_GCC_JIT_SEPARATE_BOOL_OPTION(use_external_driver);
   extern "C" LEAN_EXPORT lean_obj_res                                          \
       lean_gcc_jit_context_add_##NAME##_option(                                \
           b_lean_obj_arg ctx, b_lean_obj_arg value, lean_object * /* w */) {   \
-    auto context = get_gcc_jit_context(ctx);                                   \
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);                                   \
     auto val = lean_string_cstr(value);                                        \
     gcc_jit_context_add_##NAME##_option(context, val);                         \
     return lean_io_result_mk_ok(lean_box(0));                                  \
@@ -109,14 +120,22 @@ LEAN_GCC_JIT_ADD_STRING_OPTION(driver);
 
 extern "C" LEAN_EXPORT lean_obj_res
 lean_gcc_jit_context_compile(b_lean_obj_arg ctx) {
-  auto context = get_gcc_jit_context(ctx);
-  auto result = create_gcc_jit_result(gcc_jit_context_compile(context));
+  auto context = unwrap_pointer<gcc_jit_context>(ctx);
+  auto result = wrap_pointer<gcc_jit_result>(gcc_jit_context_compile(context));
   return lean_io_result_mk_ok(result);
 }
 
+extern "C" LEAN_EXPORT lean_obj_res
+lean_gcc_jit_result_release(lean_obj_arg res, lean_object * /* w */) {
+  auto result = unwrap_pointer<gcc_jit_result>(res);
+  gcc_jit_result_release(result);
+  lean_dec(res);
+  return lean_io_result_mk_ok(lean_box(0));
+};
+
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_compile_to_file(
     b_lean_obj_arg ctx, uint8_t output_kind, b_lean_obj_arg output_path) {
-  auto context = get_gcc_jit_context(ctx);
+  auto context = unwrap_pointer<gcc_jit_context>(ctx);
   auto kind = static_cast<gcc_jit_output_kind>(output_kind);
   auto path = lean_string_cstr(output_path);
   gcc_jit_context_compile_to_file(context, kind, path);
@@ -125,7 +144,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_compile_to_file(
 
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_dump_to_file(
     b_lean_obj_arg ctx, b_lean_obj_arg output_path, uint8_t update_locations) {
-  auto context = get_gcc_jit_context(ctx);
+  auto context = unwrap_pointer<gcc_jit_context>(ctx);
   auto path = lean_string_cstr(output_path);
   gcc_jit_context_dump_to_file(context, path,
                                static_cast<int>(update_locations));
@@ -145,7 +164,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_logfile(
         3, lean_mk_string("verbosity is not a scalar"));
     return lean_io_result_mk_error(error);
   }
-  auto context = get_gcc_jit_context(ctx);
+  auto context = unwrap_pointer<gcc_jit_context>(ctx);
   auto f = lean_scalar_to_int(flags);
   auto v = lean_scalar_to_int(verbosity);
   auto h = static_cast<FILE *>(lean_get_external_data(handle));
@@ -166,21 +185,21 @@ static inline lean_obj_res lean_option_string(const char *str) {
 
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_get_first_error(
     b_lean_obj_arg ctx, lean_object * /* w */) {
-  auto context = get_gcc_jit_context(ctx);
+  auto context = unwrap_pointer<gcc_jit_context>(ctx);
   auto error = gcc_jit_context_get_first_error(context);
   return lean_option_string(error);
 }
 
 extern "C" LEAN_EXPORT lean_obj_res
 lean_gcc_jit_context_get_last_error(b_lean_obj_arg ctx, lean_object * /* w */) {
-  auto context = get_gcc_jit_context(ctx);
+  auto context = unwrap_pointer<gcc_jit_context>(ctx);
   auto error = gcc_jit_context_get_last_error(context);
   return lean_option_string(error);
 }
 
 extern "C" LEAN_EXPORT size_t lean_gcc_jit_result_get_code(
     b_lean_obj_arg res, b_lean_obj_arg name, lean_object * /* w */) {
-  auto result = get_gcc_jit_result(res);
+  auto result = unwrap_pointer<gcc_jit_result>(res);
   auto funcname = lean_string_cstr(name);
   auto addr = gcc_jit_result_get_code(result, funcname);
   return reinterpret_cast<size_t>(addr);
@@ -188,7 +207,7 @@ extern "C" LEAN_EXPORT size_t lean_gcc_jit_result_get_code(
 
 extern "C" LEAN_EXPORT size_t lean_gcc_jit_result_get_global(
     b_lean_obj_arg res, b_lean_obj_arg name, lean_object * /* w */) {
-  auto result = get_gcc_jit_result(res);
+  auto result = unwrap_pointer<gcc_jit_result>(res);
   auto gname = lean_string_cstr(name);
   auto addr = gcc_jit_result_get_global(result, gname);
   return reinterpret_cast<size_t>(addr);
