@@ -1,18 +1,16 @@
+#include <cassert>
 #include <cstdint>
 #include <cstdio>
 #include <lean/lean.h>
 #include <libgccjit.h>
-#include <cassert>
 namespace lean_gccjit {
 
-static_assert(sizeof(size_t) >= sizeof(void *), 
-  "size_t must be at least as large as a pointer");
+static_assert(sizeof(size_t) >= sizeof(void *),
+              "size_t must be at least as large as a pointer");
 
 constexpr static inline bool POINTER_OF_64BIT = sizeof(size_t) == 8;
 
-// For those without release function, we use thin wrapper of them.
-template <typename T>
-static inline lean_obj_res wrap_pointer(T * ptr) {
+template <typename T> static inline lean_obj_res wrap_pointer(T *ptr) {
   size_t value = reinterpret_cast<size_t>(ptr);
   if constexpr (POINTER_OF_64BIT) {
     return lean_box(value);
@@ -21,8 +19,7 @@ static inline lean_obj_res wrap_pointer(T * ptr) {
   }
 }
 
-template <typename T>
-static inline T * unwrap_pointer(b_lean_obj_arg obj) {
+template <typename T> static inline T *unwrap_pointer(b_lean_obj_arg obj) {
   if constexpr (POINTER_OF_64BIT) {
     return reinterpret_cast<T *>(lean_unbox(obj));
   } else {
@@ -30,10 +27,9 @@ static inline T * unwrap_pointer(b_lean_obj_arg obj) {
   }
 }
 
-
 extern "C" LEAN_EXPORT lean_obj_res
 lean_gcc_jit_context_acquire(lean_object * /* w */) {
-  auto ctx = wrap_pointer<gcc_jit_context>(gcc_jit_context_acquire());
+  auto ctx = wrap_pointer(gcc_jit_context_acquire());
   return lean_io_result_mk_ok(ctx);
 };
 
@@ -96,7 +92,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_bool_option(
 #define LEAN_GCC_JIT_SEPARATE_BOOL_OPTION(NAME)                                \
   extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_bool_##NAME(    \
       b_lean_obj_arg ctx, uint8_t value, lean_object * /* w */) {              \
-    auto context = unwrap_pointer<gcc_jit_context>(ctx);                                   \
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);                       \
     gcc_jit_context_set_bool_##NAME(context, static_cast<int>(value));         \
     return lean_io_result_mk_ok(lean_box(0));                                  \
   }
@@ -109,7 +105,7 @@ LEAN_GCC_JIT_SEPARATE_BOOL_OPTION(use_external_driver);
   extern "C" LEAN_EXPORT lean_obj_res                                          \
       lean_gcc_jit_context_add_##NAME##_option(                                \
           b_lean_obj_arg ctx, b_lean_obj_arg value, lean_object * /* w */) {   \
-    auto context = unwrap_pointer<gcc_jit_context>(ctx);                                   \
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);                       \
     auto val = lean_string_cstr(value);                                        \
     gcc_jit_context_add_##NAME##_option(context, val);                         \
     return lean_io_result_mk_ok(lean_box(0));                                  \
@@ -121,7 +117,7 @@ LEAN_GCC_JIT_ADD_STRING_OPTION(driver);
 extern "C" LEAN_EXPORT lean_obj_res
 lean_gcc_jit_context_compile(b_lean_obj_arg ctx) {
   auto context = unwrap_pointer<gcc_jit_context>(ctx);
-  auto result = wrap_pointer<gcc_jit_result>(gcc_jit_context_compile(context));
+  auto result = wrap_pointer(gcc_jit_context_compile(context));
   return lean_io_result_mk_ok(result);
 }
 
