@@ -13,7 +13,7 @@ lean_lib «LeanGccJit» {
 target gccjit.o pkg : FilePath := do
   let oFile := pkg.buildDir / "cxx" / "gccjit.o"
   let srcJob ← inputFile <| pkg.dir / "cxx" / "gccjit.cpp"
-  let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC"]
+  let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=c++17"]
   buildO "gccjit.cpp" oFile srcJob flags "c++"
 
 extern_lib liblean_gccjit.a pkg := do
