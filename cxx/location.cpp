@@ -2,7 +2,7 @@
 #include "lean/lean.h"
 namespace lean_gccjit {
 
-extern "C" LEAN_EXPORT lean_obj_res lean_gcc_git_context_new_location(
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_location(
     b_lean_obj_arg ctx, b_lean_obj_arg filename, b_lean_obj_arg line,
     b_lean_obj_arg column, lean_object * /* w */) {
   if (!lean_is_scalar(line)) {

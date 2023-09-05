@@ -10,29 +10,23 @@ lean_lib «LeanGccJit» {
   -- add library configuration options here
 }
 
-target object.o pkg : FilePath := do
-  let oFile := pkg.buildDir / "cxx" / "object.o"
-  let srcJob ← inputFile <| pkg.dir / "cxx" / "object.cpp"
-  let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=c++17"]
-  buildO "object.cpp" oFile srcJob flags "c++"
+def flags [MonadLakeEnv m] [Monad m] : m (Array String) := do
+  pure #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=c++17", "-O3", "-fvisibility=hidden"]
 
-target context.o pkg : FilePath := do
-  let oFile := pkg.buildDir / "cxx" / "context.o"
-  let srcJob ← inputFile <| pkg.dir / "cxx" / "context.cpp"
-  let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=c++17"]
-  buildO "context.cpp" oFile srcJob flags "c++"
+def objectFile (pkg : Package) (name : String) : SchedulerM (BuildJob FilePath) := do
+  let oFile := pkg.buildDir / "cxx" / (name ++ ".o")
+  let srcJob ← inputFile <| pkg.dir / "cxx" / (name ++ ".cpp")
+  buildO (name ++ ".cpp") oFile srcJob (← flags) "c++"
 
-target result.o pkg : FilePath := do
-  let oFile := pkg.buildDir / "cxx" / "result.o"
-  let srcJob ← inputFile <| pkg.dir / "cxx" / "result.cpp"
-  let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=c++17"]
-  buildO "result.cpp" oFile srcJob flags "c++"
+target object.o pkg : FilePath := objectFile pkg "object"
 
-target utilities.o pkg : FilePath := do
-  let oFile := pkg.buildDir / "cxx" / "utilities.o"
-  let srcJob ← inputFile <| pkg.dir / "cxx" / "utilities.cpp"
-  let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=c++17"]
-  buildO "utilities.cpp" oFile srcJob flags "c++"
+target context.o pkg : FilePath := objectFile pkg "context"
+
+target result.o pkg : FilePath := objectFile pkg "result"
+
+target utilities.o pkg : FilePath := objectFile pkg "utilities"
+
+target location.o pkg : FilePath := objectFile pkg "location"
 
 extern_lib liblean_gccjit.a pkg := do
   let name := nameToStaticLib "lean_gccjit"
@@ -40,7 +34,8 @@ extern_lib liblean_gccjit.a pkg := do
   let contextO ← fetch <| pkg.target ``context.o
   let resultO ← fetch <| pkg.target ``result.o
   let utilitiesO ← fetch <| pkg.target ``utilities.o
-  buildStaticLib (pkg.nativeLibDir / name) #[objectO, contextO, resultO, utilitiesO]
+  let locationO ← fetch <| pkg.target ``location.o
+  buildStaticLib (pkg.nativeLibDir / name) #[objectO, contextO, resultO, utilitiesO, locationO]
 
 @[default_target]
 lean_exe «lean-gccjit» {
