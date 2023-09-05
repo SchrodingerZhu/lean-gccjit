@@ -1,4 +1,5 @@
 #include "common.h"
+#include <cstdint>
 namespace lean_gccjit {
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_type_as_object(
     b_lean_obj_arg loc, lean_object * /* w */
@@ -76,6 +77,61 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_array_type(
   auto elements = lean_scalar_to_int(num_elements);
   auto result = gcc_jit_context_new_array_type(context, loc, element, elements);
   return map_notnull(result, wrap_pointer<gcc_jit_type>, "invalid array type");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_union_type(
+    b_lean_obj_arg ctx, b_lean_obj_arg loc, b_lean_obj_arg name,
+    b_lean_obj_arg fields, lean_object * /* w */
+) {
+  auto array_len = lean_array_size(fields);
+  if (array_len > INT_MAX) {
+    auto error = lean_mk_io_error_invalid_argument(
+        EINVAL, lean_mk_string("too many fields"));
+    return lean_io_result_mk_error(error);
+  }
+  auto context = unwrap_pointer<gcc_jit_context>(ctx);
+  auto location = unwrap_pointer<gcc_jit_location>(loc);
+  auto union_name = lean_string_cstr(name);
+  auto num_fields = static_cast<int>(array_len);
+  gcc_jit_type *result =
+      with_allocation<gcc_jit_field *>(array_len, [=](gcc_jit_field **ptr) {
+        for (size_t i = 0; i < array_len; i++) {
+          ptr[i] =
+              unwrap_pointer<gcc_jit_field>(lean_to_array(fields)->m_data[i]);
+        }
+        return gcc_jit_context_new_union_type(context, location, union_name,
+                                              num_fields, ptr);
+      });
+  return map_notnull(result, wrap_pointer<gcc_jit_type>,
+                     "failed to create union");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_function_ptr_type(
+    b_lean_obj_arg ctx, b_lean_obj_arg loc, b_lean_obj_arg ret_ty,
+    b_lean_obj_arg params, uint8_t is_variadic, lean_object * /* w */
+) {
+  auto array_len = lean_array_size(params);
+  if (array_len > INT_MAX) {
+    auto error = lean_mk_io_error_invalid_argument(
+        EINVAL, lean_mk_string("too many params"));
+    return lean_io_result_mk_error(error);
+  }
+  auto context = unwrap_pointer<gcc_jit_context>(ctx);
+  auto location = unwrap_pointer<gcc_jit_location>(loc);
+  auto return_type = unwrap_pointer<gcc_jit_type>(ret_ty);
+  auto num_params = static_cast<int>(array_len);
+  auto variadic = static_cast<int>(is_variadic);
+  gcc_jit_type *result =
+      with_allocation<gcc_jit_type *>(array_len, [=](gcc_jit_type **ptr) {
+        for (size_t i = 0; i < array_len; i++) {
+          ptr[i] =
+              unwrap_pointer<gcc_jit_type>(lean_to_array(params)->m_data[i]);
+        }
+        return gcc_jit_context_new_function_ptr_type(
+            context, location, return_type, num_params, ptr, variadic);
+      });
+  return map_notnull(result, wrap_pointer<gcc_jit_type>,
+                     "failed to create function ptr type");
 }
 
 } // namespace lean_gccjit

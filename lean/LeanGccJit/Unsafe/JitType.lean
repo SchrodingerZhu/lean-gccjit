@@ -28,3 +28,11 @@ opaque JitType.getSize (ty: @& JitType) : IO Nat
 @[extern "lean_gcc_jit_context_new_array_type"]
 opaque Context.newArrayType 
   (ctx : @& Context) (location : @& Location) (elemType : @& JitType) (size : @& Int) : IO JitType
+
+@[extern "lean_gcc_jit_context_new_union_type"]
+opaque Context.newUnionType 
+  (ctx : @& Context) (location : @& Location) (name : @& CString) (fields: @& Array Field) : IO JitType
+
+@[extern "lean_gcc_jit_context_new_function_ptr_type"]
+opaque Context.newFunctionPtrType 
+  (ctx : @& Context) (location : @& Location) (returnType : @& JitType) (params: @& Array JitType) (isVarArg : @& Bool) : IO JitType
