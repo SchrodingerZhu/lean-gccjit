@@ -1,5 +1,4 @@
 #include "common.h"
-#include "lean/lean.h"
 namespace lean_gccjit {
 
 extern "C" LEAN_EXPORT lean_obj_res

@@ -41,4 +41,25 @@ LEAN_GCC_JIT_TYPE_TO_TYPE(pointer);
 LEAN_GCC_JIT_TYPE_TO_TYPE(const);
 LEAN_GCC_JIT_TYPE_TO_TYPE(volatile);
 
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_compatible_types(
+    b_lean_obj_arg type1, b_lean_obj_arg type2, lean_object * /* w */) {
+  auto t1 = unwrap_pointer<gcc_jit_type>(type1);
+  auto t2 = unwrap_pointer<gcc_jit_type>(type2);
+  if (gcc_jit_compatible_types(t1, t2) != 0) {
+    return lean_io_result_mk_ok(lean_box(1));
+  } else {
+    return lean_io_result_mk_ok(lean_box(0));
+  }
+}
+
+extern "C" LEAN_EXPORT lean_obj_res
+lean_gcc_jit_type_get_size(b_lean_obj_arg type, lean_object * /* w */) {
+  auto ty = unwrap_pointer<gcc_jit_type>(type);
+  auto result = gcc_jit_type_get_size(ty);
+  return map_condition(
+      result, [](ssize_t x) { return x > 0; },
+      [](ssize_t x) { return lean_box(static_cast<size_t>(x)); },
+      "failed to get size");
+}
+
 } // namespace lean_gccjit

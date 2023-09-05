@@ -14,10 +14,20 @@ def typeCheck2 (ctx : Context) : IO Unit := do
   let ty ← ctx.getIntType 8 false
   let ty ← ty.getPointer
   let ty ← ty.getVolatile
-  let ty ← ty.getConst
+  let cty ← ty.getConst
+  let compat ← cty.isCompatibleWith ty
+  let obj ← cty.asObject
+  let debug ← obj.getDebugString
+  let obj2 ← ty.asObject
+  let debug2 ← obj2.getDebugString
+  IO.println s!"{debug} is compatible with {debug2}? {compat}"
+
+def typeCheck3 (ctx : Context) : IO Unit := do
+  let ty ← ctx.getIntType 8 false
   let obj ← ty.asObject
   let debug ← obj.getDebugString
-  IO.println s!"{debug}"
+  let size ← ty.getSize
+  IO.println s!"{debug} is of size {size}."
 
 def main : IO Unit := do
   IO.println s!"major version: {getMajorVersion ()}"
@@ -32,6 +42,8 @@ def main : IO Unit := do
   ctx.dumpToFile "/tmp/test.data" true
   typeCheck1 ctx
   typeCheck2 ctx
-  ctx.release
+  typeCheck3 ctx
   IO.println s!"{(← ctx.getFirstError)}"
+  ctx.release
+  
 

@@ -18,3 +18,9 @@ opaque JitType.getConst (ty : @& JitType) : IO JitType
 
 @[extern "lean_gcc_jit_type_get_volatile"]
 opaque JitType.getVolatile (ty : @& JitType) : IO JitType
+
+@[extern "lean_gcc_jit_compatible_types"]
+opaque JitType.isCompatibleWith (ty1 ty2 : @& JitType) : IO Bool
+
+@[extern "lean_gcc_jit_type_get_size"]
+opaque JitType.getSize (ty: @& JitType) : IO Nat
