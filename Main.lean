@@ -16,5 +16,5 @@ def main : IO Unit := do
   ctx.compileToFile OutputKind.ObjectFile "/tmp/test.o"
   ctx.dumpToFile "/tmp/test.data" true
   ctx.release
-  IO.println s!"{ctx.getFirstError}"
+  IO.println s!"{(← ctx.getFirstError)}"
 

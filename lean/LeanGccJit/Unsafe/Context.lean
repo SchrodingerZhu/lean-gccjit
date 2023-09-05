@@ -30,9 +30,6 @@ opaque Context.addCommandLineOption: @& Context → @& String → IO PUnit
 @[extern "lean_gcc_jit_context_add_driver_option"]
 opaque Context.addDriverOption: @& Context → @& String → IO PUnit
 
-@[extern "lean_gcc_jit_context_compile"]
-opaque Context.compile: @& Context → IO Result
-
 @[extern "lean_gcc_jit_context_compile_to_file"]
 opaque Context.compileToFile: @& Context → @& OutputKind → @& String → IO PUnit
 
@@ -43,7 +40,7 @@ opaque Context.dumpToFile: @& Context → @& String→ @& Bool → IO PUnit
 opaque Context.setLogFile: @& Context → @& IO.FS.Handle → @& Int → @& Int → IO PUnit
 
 @[extern "lean_gcc_jit_context_get_first_error"]
-opaque Context.getFirstError: @& Context → Option String
+opaque Context.getFirstError: @& Context → IO (Option String)
 
 @[extern "lean_gcc_jit_context_get_last_error"]
-opaque Context.getLastError: @& Context → Option String
+opaque Context.getLastError: @& Context → IO (Option String)
