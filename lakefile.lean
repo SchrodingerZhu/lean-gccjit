@@ -10,16 +10,30 @@ lean_lib «LeanGccJit» {
   -- add library configuration options here
 }
 
-target gccjit.o pkg : FilePath := do
-  let oFile := pkg.buildDir / "cxx" / "gccjit.o"
-  let srcJob ← inputFile <| pkg.dir / "cxx" / "gccjit.cpp"
+target context.o pkg : FilePath := do
+  let oFile := pkg.buildDir / "cxx" / "context.o"
+  let srcJob ← inputFile <| pkg.dir / "cxx" / "context.cpp"
   let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=c++17"]
-  buildO "gccjit.cpp" oFile srcJob flags "c++"
+  buildO "context.cpp" oFile srcJob flags "c++"
+
+target result.o pkg : FilePath := do
+  let oFile := pkg.buildDir / "cxx" / "result.o"
+  let srcJob ← inputFile <| pkg.dir / "cxx" / "result.cpp"
+  let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=c++17"]
+  buildO "result.cpp" oFile srcJob flags "c++"
+
+target utilities.o pkg : FilePath := do
+  let oFile := pkg.buildDir / "cxx" / "utilities.o"
+  let srcJob ← inputFile <| pkg.dir / "cxx" / "utilities.cpp"
+  let flags := #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=c++17"]
+  buildO "utilities.cpp" oFile srcJob flags "c++"
 
 extern_lib liblean_gccjit.a pkg := do
   let name := nameToStaticLib "lean_gccjit"
-  let gccJitO ← fetch <| pkg.target ``gccjit.o
-  buildStaticLib (pkg.nativeLibDir / name) #[gccJitO]
+  let contextO ← fetch <| pkg.target ``context.o
+  let resultO ← fetch <| pkg.target ``result.o
+  let utilitiesO ← fetch <| pkg.target ``utilities.o
+  buildStaticLib (pkg.nativeLibDir / name) #[contextO, resultO, utilitiesO]
 
 @[default_target]
 lean_exe «lean-gccjit» {

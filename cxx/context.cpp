@@ -1,31 +1,5 @@
-#include <cassert>
-#include <cstdint>
-#include <cstdio>
-#include <lean/lean.h>
-#include <libgccjit.h>
+#include "common.h"
 namespace lean_gccjit {
-
-static_assert(sizeof(size_t) >= sizeof(void *),
-              "size_t must be at least as large as a pointer");
-
-constexpr static inline bool POINTER_OF_64BIT = sizeof(size_t) == 8;
-
-template <typename T> static inline lean_obj_res wrap_pointer(T *ptr) {
-  size_t value = reinterpret_cast<size_t>(ptr);
-  if constexpr (POINTER_OF_64BIT) {
-    return lean_box(value);
-  } else {
-    return lean_box_usize(value);
-  }
-}
-
-template <typename T> static inline T *unwrap_pointer(b_lean_obj_arg obj) {
-  if constexpr (POINTER_OF_64BIT) {
-    return reinterpret_cast<T *>(lean_unbox(obj));
-  } else {
-    return reinterpret_cast<T *>(lean_unbox_usize(obj));
-  }
-}
 
 extern "C" LEAN_EXPORT lean_obj_res
 lean_gcc_jit_context_acquire(lean_object * /* w */) {
@@ -168,17 +142,6 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_logfile(
   return lean_io_result_mk_ok(lean_box(0));
 }
 
-static inline lean_obj_res lean_option_string(const char *str) {
-  if (str == nullptr) {
-    return lean_box(0);
-  } else {
-    auto msg = lean_mk_string(str);
-    auto some = lean_alloc_ctor(1, 1, 0);
-    lean_ctor_set(some, 0, msg);
-    return some;
-  }
-}
-
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_get_first_error(
     b_lean_obj_arg ctx, lean_object * /* w */) {
   auto context = unwrap_pointer<gcc_jit_context>(ctx);
@@ -192,21 +155,4 @@ lean_gcc_jit_context_get_last_error(b_lean_obj_arg ctx, lean_object * /* w */) {
   auto error = gcc_jit_context_get_last_error(context);
   return lean_option_string(error);
 }
-
-extern "C" LEAN_EXPORT size_t lean_gcc_jit_result_get_code(
-    b_lean_obj_arg res, b_lean_obj_arg name, lean_object * /* w */) {
-  auto result = unwrap_pointer<gcc_jit_result>(res);
-  auto funcname = lean_string_cstr(name);
-  auto addr = gcc_jit_result_get_code(result, funcname);
-  return reinterpret_cast<size_t>(addr);
-}
-
-extern "C" LEAN_EXPORT size_t lean_gcc_jit_result_get_global(
-    b_lean_obj_arg res, b_lean_obj_arg name, lean_object * /* w */) {
-  auto result = unwrap_pointer<gcc_jit_result>(res);
-  auto gname = lean_string_cstr(name);
-  auto addr = gcc_jit_result_get_global(result, gname);
-  return reinterpret_cast<size_t>(addr);
-}
-
 } // namespace lean_gccjit

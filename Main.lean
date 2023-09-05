@@ -1,5 +1,13 @@
+
 import «LeanGccJit»
+import LeanGccJit.Version
+import LeanGccJit.Types
+import LeanGccJit.Unsafe
+
 def main : IO Unit := do
+  IO.println s!"major version: {getMajorVersion ()}"
+  IO.println s!"minor version: {getMinorVersion ()}"
+  IO.println s!"patch version: {getPatchlevel ()}"
   let ctx ← Context.acquire
   ctx.setIntOption IntOption.OptimizationLevel 3
   ctx.setBoolOption BoolOption.DumpEverything true
