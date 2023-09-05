@@ -3,7 +3,6 @@
 #include <cstdint>
 #include <lean/lean.h>
 #include <libgccjit.h>
-#include <utility>
 namespace lean_gccjit {
 
 static_assert(sizeof(size_t) >= sizeof(void *),
@@ -52,6 +51,35 @@ template <typename T, typename F>
 static inline lean_obj_res map_notnull(T &&res, F &&f, const char *msg) {
   return map_condition(
       std::forward<T>(res), [](auto x) { return x; }, std::forward<F>(f), msg);
+}
+
+extern "C" {
+void *malloc(size_t size);
+void free(void *ptr);
+}
+
+template <typename T, typename F>
+static inline auto with_allocation(size_t n, F f) {
+#if __has_builtin(__builtin_alloca)
+  if (LEAN_LIKELY(sizeof(T) * n <= 64)) {
+    return f(static_cast<T *>(__builtin_alloca(sizeof(T) * n)));
+  }
+#endif
+  auto size = lean_align(sizeof(T) * n, LEAN_OBJECT_SIZE_DELTA);
+#ifdef LEAN_SMALL_ALLOCATOR
+  if (size <= LEAN_MAX_SMALL_OBJECT_SIZE) {
+    auto ptr =
+        static_cast<T *>(lean_alloc_small(size, lean_get_slot_idx(size)));
+    auto res = f(ptr);
+    lean_free_small(ptr);
+    return res;
+  }
+#endif
+  lean_inc_heartbeat();
+  auto ptr = static_cast<T *>(malloc(size));
+  auto res = f(ptr);
+  free(ptr);
+  return res;
 }
 
 } // namespace lean_gccjit

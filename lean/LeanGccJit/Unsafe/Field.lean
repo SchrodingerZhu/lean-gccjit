@@ -1,3 +1,5 @@
+import LeanGccJit.Types
+
 @[extern "lean_gcc_jit_context_new_field"]
 opaque Context.newField
   (ctx : @& Context) (location : @& Location) (type : @& JitType) (name : @& String) : IO Field

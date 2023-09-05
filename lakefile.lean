@@ -11,7 +11,7 @@ lean_lib «LeanGccJit» {
 }
 
 def flags [MonadLakeEnv m] [Monad m] : m (Array String) := do
-  pure #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=c++17", "-O3", "-fvisibility=hidden"]
+  pure #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=c++17", "-O3", "-fvisibility=hidden", "-ffreestanding"]
 
 def objectFile (pkg : Package) (name : String) : SchedulerM (BuildJob FilePath) := do
   let oFile := pkg.buildDir / "cxx" / (name ++ ".o")
@@ -32,6 +32,8 @@ target jit_type.o pkg : FilePath := objectFile pkg "jit_type"
 
 target field.o pkg : FilePath := objectFile pkg "field"
 
+target struct.o pkg : FilePath := objectFile pkg "struct"
+
 extern_lib liblean_gccjit.a pkg := do
   let name := nameToStaticLib "lean_gccjit"
   let objectO ← fetch <| pkg.target ``object.o
@@ -41,6 +43,7 @@ extern_lib liblean_gccjit.a pkg := do
   let locationO ← fetch <| pkg.target ``location.o
   let jit_typeO ← fetch <| pkg.target ``jit_type.o
   let fieldO ← fetch <| pkg.target ``field.o
+  let structO ← fetch <| pkg.target ``struct.o
   buildStaticLib (pkg.nativeLibDir / name) #[
     objectO, 
     contextO, 
@@ -48,7 +51,8 @@ extern_lib liblean_gccjit.a pkg := do
     utilitiesO,
     locationO, 
     jit_typeO,
-    fieldO
+    fieldO,
+    structO
   ]
 
 @[default_target]

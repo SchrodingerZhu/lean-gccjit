@@ -37,6 +37,24 @@ def typeCheck4 (ctx : Context) : IO Unit := do
   let debug ← obj.getDebugString
   IO.println s!"array type: {debug}"
 
+def typeCheck5 (ctx : Context) : IO Unit := do
+  let location ← ctx.newLocation "test.c" 1 1
+  let tyA ← ctx.getType TypeEnum.ComplexLongDouble
+  let fieldA ← ctx.newField location tyA "a"
+  let tyB ← ctx.getType TypeEnum.UnsignedLongLong
+  let fieldB ← ctx.newField location tyB "b"
+  let struct ← ctx.newStructType location "test" #[fieldA, fieldB]
+  let numFields ← struct.getFieldCount
+  let tySt ← struct.asJitType
+  let obj ← tySt.asObject
+  let debug ← obj.getDebugString
+  IO.println s!"struct type: {debug}, with {numFields} fields."
+  for i in [:numFields] do
+    let field ← struct.getField i
+    let obj ← field.asObject
+    let debug ← obj.getDebugString
+    IO.println s!"field {i}: {debug}"
+  
 def main : IO Unit := do
   IO.println s!"major version: {getMajorVersion ()}"
   IO.println s!"minor version: {getMinorVersion ()}"
@@ -52,6 +70,7 @@ def main : IO Unit := do
   typeCheck2 ctx
   typeCheck3 ctx
   typeCheck4 ctx
+  typeCheck5 ctx
   IO.println s!"{(← ctx.getFirstError)}"
   ctx.release
   
