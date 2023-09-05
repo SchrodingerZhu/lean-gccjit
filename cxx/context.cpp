@@ -89,7 +89,7 @@ LEAN_GCC_JIT_ADD_STRING_OPTION(command_line);
 LEAN_GCC_JIT_ADD_STRING_OPTION(driver);
 
 extern "C" LEAN_EXPORT lean_obj_res
-lean_gcc_jit_context_compile(b_lean_obj_arg ctx) {
+lean_gcc_jit_context_compile(b_lean_obj_arg ctx, lean_object * /* w */) {
   auto context = unwrap_pointer<gcc_jit_context>(ctx);
   auto result = wrap_pointer(gcc_jit_context_compile(context));
   return lean_io_result_mk_ok(result);
@@ -104,7 +104,7 @@ lean_gcc_jit_result_release(lean_obj_arg res, lean_object * /* w */) {
 };
 
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_compile_to_file(
-    b_lean_obj_arg ctx, uint8_t output_kind, b_lean_obj_arg output_path) {
+    b_lean_obj_arg ctx, uint8_t output_kind, b_lean_obj_arg output_path, lean_object * /* w */) {
   auto context = unwrap_pointer<gcc_jit_context>(ctx);
   auto kind = static_cast<gcc_jit_output_kind>(output_kind);
   auto path = lean_string_cstr(output_path);
@@ -113,7 +113,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_compile_to_file(
 }
 
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_dump_to_file(
-    b_lean_obj_arg ctx, b_lean_obj_arg output_path, uint8_t update_locations) {
+    b_lean_obj_arg ctx, b_lean_obj_arg output_path, uint8_t update_locations, lean_object * /* w */) {
   auto context = unwrap_pointer<gcc_jit_context>(ctx);
   auto path = lean_string_cstr(output_path);
   gcc_jit_context_dump_to_file(context, path,
@@ -123,7 +123,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_dump_to_file(
 
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_logfile(
     b_lean_obj_arg ctx, b_lean_obj_arg handle, b_lean_obj_arg flags,
-    b_lean_obj_arg verbosity) {
+    b_lean_obj_arg verbosity, lean_object * /* w */) {
   if (!lean_is_scalar(flags)) {
     auto error = lean_mk_io_error_invalid_argument(
         2, lean_mk_string("value is not a scalar"));
