@@ -1,5 +1,4 @@
 #include "common.h"
-#include "lean/lean.h"
 namespace lean_gccjit {
 
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_location(
@@ -20,8 +19,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_location(
   auto l = lean_scalar_to_int(line);
   auto c = lean_scalar_to_int(column);
   auto *loc = gcc_jit_context_new_location(context, fname, l, c);
-  auto *wrapped = wrap_pointer(loc);
-  return lean_io_result_mk_ok(wrapped);
+  return map_notnull(loc, wrap_pointer<gcc_jit_location>, "invalid context");
 }
 
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_location_as_object(
@@ -29,8 +27,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_location_as_object(
 ) {
   auto *location = unwrap_pointer<gcc_jit_location>(loc);
   auto *obj = gcc_jit_location_as_object(location);
-  auto *wrapped = wrap_pointer(obj);
-  return lean_io_result_mk_ok(wrapped);
+  return map_notnull(obj, wrap_pointer<gcc_jit_object>, "invalid location");
 }
 
 } // namespace lean_gccjit

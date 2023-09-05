@@ -3,8 +3,9 @@ namespace lean_gccjit {
 
 extern "C" LEAN_EXPORT lean_obj_res
 lean_gcc_jit_context_acquire(lean_object * /* w */) {
-  auto ctx = wrap_pointer(gcc_jit_context_acquire());
-  return lean_io_result_mk_ok(ctx);
+  auto ctx = gcc_jit_context_acquire();
+  return map_notnull(ctx, wrap_pointer<gcc_jit_context>,
+                     "failed to create context");
 };
 
 extern "C" LEAN_EXPORT lean_obj_res

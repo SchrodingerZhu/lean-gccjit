@@ -28,6 +28,8 @@ target utilities.o pkg : FilePath := objectFile pkg "utilities"
 
 target location.o pkg : FilePath := objectFile pkg "location"
 
+target jit_type.o pkg : FilePath := objectFile pkg "jit_type"
+
 extern_lib liblean_gccjit.a pkg := do
   let name := nameToStaticLib "lean_gccjit"
   let objectO ← fetch <| pkg.target ``object.o
@@ -35,7 +37,15 @@ extern_lib liblean_gccjit.a pkg := do
   let resultO ← fetch <| pkg.target ``result.o
   let utilitiesO ← fetch <| pkg.target ``utilities.o
   let locationO ← fetch <| pkg.target ``location.o
-  buildStaticLib (pkg.nativeLibDir / name) #[objectO, contextO, resultO, utilitiesO, locationO]
+  let jit_typeO ← fetch <| pkg.target ``jit_type.o
+  buildStaticLib (pkg.nativeLibDir / name) #[
+    objectO, 
+    contextO, 
+    resultO,
+    utilitiesO,
+    locationO, 
+    jit_typeO
+  ]
 
 @[default_target]
 lean_exe «lean-gccjit» {

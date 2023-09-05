@@ -37,4 +37,12 @@ static inline lean_obj_res lean_option_string(const char *str) {
   }
 }
 
+template <typename T, typename F>
+static inline lean_obj_res map_notnull(T res, F f, const char *msg) {
+  if (!res) {
+    return lean_io_result_mk_error(lean_mk_io_user_error(lean_mk_string(msg)));
+  }
+  return lean_io_result_mk_ok(f(res));
+}
+
 } // namespace lean_gccjit
