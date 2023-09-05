@@ -143,14 +143,14 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_logfile(
 }
 
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_get_first_error(
-    b_lean_obj_arg ctx, lean_object * /* w */) {
+    b_lean_obj_arg ctx) {
   auto context = unwrap_pointer<gcc_jit_context>(ctx);
   auto error = gcc_jit_context_get_first_error(context);
   return lean_option_string(error);
 }
 
 extern "C" LEAN_EXPORT lean_obj_res
-lean_gcc_jit_context_get_last_error(b_lean_obj_arg ctx, lean_object * /* w */) {
+lean_gcc_jit_context_get_last_error(b_lean_obj_arg ctx) {
   auto context = unwrap_pointer<gcc_jit_context>(ctx);
   auto error = gcc_jit_context_get_last_error(context);
   return lean_option_string(error);
