@@ -29,6 +29,14 @@ def typeCheck3 (ctx : Context) : IO Unit := do
   let size ← ty.getSize
   IO.println s!"{debug} is of size {size}."
 
+def typeCheck4 (ctx : Context) : IO Unit := do
+  let ty ← ctx.getIntType 8 false
+  let location ← ctx.newLocation "test.c" 1 1
+  let arr ← ctx.newArrayType location ty 10
+  let obj ← arr.asObject
+  let debug ← obj.getDebugString
+  IO.println s!"array type: {debug}"
+
 def main : IO Unit := do
   IO.println s!"major version: {getMajorVersion ()}"
   IO.println s!"minor version: {getMinorVersion ()}"
@@ -43,6 +51,7 @@ def main : IO Unit := do
   typeCheck1 ctx
   typeCheck2 ctx
   typeCheck3 ctx
+  typeCheck4 ctx
   IO.println s!"{(← ctx.getFirstError)}"
   ctx.release
   

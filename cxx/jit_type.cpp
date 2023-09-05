@@ -1,5 +1,4 @@
 #include "common.h"
-#include "lean/lean.h"
 namespace lean_gccjit {
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_type_as_object(
     b_lean_obj_arg loc, lean_object * /* w */
@@ -60,6 +59,23 @@ lean_gcc_jit_type_get_size(b_lean_obj_arg type, lean_object * /* w */) {
       result, [](ssize_t x) { return x > 0; },
       [](ssize_t x) { return lean_box(static_cast<size_t>(x)); },
       "failed to get size");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_array_type(
+    b_lean_obj_arg ctx, b_lean_obj_arg location, b_lean_obj_arg element_type,
+    b_lean_obj_arg num_elements, lean_object * /* w */
+) {
+  if (!lean_is_scalar(num_elements)) {
+    auto error = lean_mk_io_error_invalid_argument(
+        EINVAL, lean_mk_string("num_elements is not a scalar"));
+    return lean_io_result_mk_error(error);
+  }
+  auto context = unwrap_pointer<gcc_jit_context>(ctx);
+  auto loc = unwrap_pointer<gcc_jit_location>(location);
+  auto element = unwrap_pointer<gcc_jit_type>(element_type);
+  auto elements = lean_scalar_to_int(num_elements);
+  auto result = gcc_jit_context_new_array_type(context, loc, element, elements);
+  return map_notnull(result, wrap_pointer<gcc_jit_type>, "invalid array type");
 }
 
 } // namespace lean_gccjit

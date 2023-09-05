@@ -30,6 +30,8 @@ target location.o pkg : FilePath := objectFile pkg "location"
 
 target jit_type.o pkg : FilePath := objectFile pkg "jit_type"
 
+target field.o pkg : FilePath := objectFile pkg "field"
+
 extern_lib liblean_gccjit.a pkg := do
   let name := nameToStaticLib "lean_gccjit"
   let objectO ← fetch <| pkg.target ``object.o
@@ -38,13 +40,15 @@ extern_lib liblean_gccjit.a pkg := do
   let utilitiesO ← fetch <| pkg.target ``utilities.o
   let locationO ← fetch <| pkg.target ``location.o
   let jit_typeO ← fetch <| pkg.target ``jit_type.o
+  let fieldO ← fetch <| pkg.target ``field.o
   buildStaticLib (pkg.nativeLibDir / name) #[
     objectO, 
     contextO, 
     resultO,
     utilitiesO,
     locationO, 
-    jit_typeO
+    jit_typeO,
+    fieldO
   ]
 
 @[default_target]
