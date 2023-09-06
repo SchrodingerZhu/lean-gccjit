@@ -70,3 +70,11 @@ opaque Context.newBinaryOp
 @[extern "lean_gcc_jit_context_new_comparison"]
 opaque Context.newComparison 
   (ctx : @& Context) (loc : @& Location) (op : @& Comparison) (a : @& RValue) (b : @& RValue) : IO RValue
+
+@[extern "lean_gcc_jit_context_new_call"]
+opaque Context.newCall 
+  (ctx : @& Context) (loc : @& Location) (fn : @& Func) (args : @& Array RValue) : IO RValue
+
+@[extern "lean_gcc_jit_context_new_call_through_ptr"]
+opaque Context.newCallThroughPtr 
+  (ctx : @& Context) (loc : @& Location) (fnPtr : @& RValue) (args : @& Array RValue) : IO RValue

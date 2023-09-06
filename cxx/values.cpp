@@ -321,5 +321,58 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_comparison(
     return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create comparison");
 }
 
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_call(
+    b_lean_obj_arg ctx,  /* @& Context */
+    b_lean_obj_arg loc,  /* @& Location */
+    b_lean_obj_arg fn,   /* @& Func */
+    b_lean_obj_arg args, /* @& Array RValue */
+    lean_object *        /* RealWorld */
+)
+{
+    if (lean_array_size(args) > INT_MAX)
+    {
+        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("too many args"));
+        return lean_io_result_mk_error(error);
+    }
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto fn_ = unwrap_pointer<gcc_jit_function>(fn);
+    auto num_args = static_cast<int>(lean_array_size(args));
+    gcc_jit_rvalue * result = with_allocation<gcc_jit_rvalue *>(num_args, [=](gcc_jit_rvalue ** ptr) {
+        for (size_t i = 0; i < num_args; i++)
+        {
+            ptr[i] = unwrap_pointer<gcc_jit_rvalue>(lean_to_array(args)->m_data[i]);
+        }
+        return gcc_jit_context_new_call(context, location, fn_, num_args, ptr);
+    });
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create call");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_call_through_ptr(
+    b_lean_obj_arg ctx,    /* @& Context */
+    b_lean_obj_arg loc,    /* @& Location */
+    b_lean_obj_arg fn_ptr, /* @& RValue */
+    b_lean_obj_arg args,   /* @& Array RValue */
+    lean_object *          /* RealWorld */
+)
+{
+    if (lean_array_size(args) > INT_MAX)
+    {
+        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("too many args"));
+        return lean_io_result_mk_error(error);
+    }
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto fn_ptr_ = unwrap_pointer<gcc_jit_rvalue>(fn_ptr);
+    auto num_args = static_cast<int>(lean_array_size(args));
+    gcc_jit_rvalue * result = with_allocation<gcc_jit_rvalue *>(num_args, [=](gcc_jit_rvalue ** ptr) {
+        for (size_t i = 0; i < num_args; i++)
+        {
+            ptr[i] = unwrap_pointer<gcc_jit_rvalue>(lean_to_array(args)->m_data[i]);
+        }
+        return gcc_jit_context_new_call_through_ptr(context, location, fn_ptr_, num_args, ptr);
+    });
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create call through ptr");
+}
 
 } // namespace lean_gccjit
