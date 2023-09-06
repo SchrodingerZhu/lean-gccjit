@@ -18,6 +18,10 @@ opaque JitTypePointed : NonemptyType
 def JitType : Type := JitTypePointed.type
 instance : Nonempty JitType := JitTypePointed.property
 
+opaque FunctionPointed : NonemptyType
+def Func : Type := FunctionPointed.type
+instance : Nonempty Func := FunctionPointed.property
+
 opaque FunctionTypePointed : NonemptyType
 def FunctionType : Type := FunctionTypePointed.type
 instance : Nonempty FunctionType := FunctionTypePointed.property
@@ -33,10 +37,6 @@ instance : Nonempty Struct := StructPointed.property
 opaque FieldPointed : NonemptyType
 def Field : Type := FieldPointed.type
 instance : Nonempty Field := FieldPointed.property
-
-opaque FunctionPointed : NonemptyType
-def Function : Type := FunctionPointed.type
-instance : Nonempty Function := FunctionPointed.property
 
 opaque BlockPointed : NonemptyType
 def Block : Type := BlockPointed.type

@@ -38,6 +38,10 @@ target function.o pkg : FilePath := objectFile pkg "function"
 
 target param.o pkg : FilePath := objectFile pkg "param"
 
+target block.o pkg : FilePath := objectFile pkg "block"
+
+target values.o pkg : FilePath := objectFile pkg "values"
+
 extern_lib liblean_gccjit.a pkg := do
   let name := nameToStaticLib "lean_gccjit"
   let objectO ← fetch <| pkg.target ``object.o
@@ -50,6 +54,8 @@ extern_lib liblean_gccjit.a pkg := do
   let structO ← fetch <| pkg.target ``struct.o
   let functionO ← fetch <| pkg.target ``function.o
   let paramO ← fetch <| pkg.target ``param.o
+  let blockO ← fetch <| pkg.target ``block.o
+  let valuesO ← fetch <| pkg.target ``values.o
   buildStaticLib (pkg.nativeLibDir / name) #[
     objectO, 
     contextO, 
@@ -60,7 +66,9 @@ extern_lib liblean_gccjit.a pkg := do
     fieldO,
     structO,
     functionO,
-    paramO
+    paramO,
+    blockO,
+    valuesO
   ]
 
 @[default_target]

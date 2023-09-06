@@ -69,9 +69,14 @@ def typeCheck6 (ctx : Context) : IO Unit := do
 
 def functionCheck1 (ctx: Context) : IO Unit := do
   let memcpy ← ctx.getBuiltinFunction "memcpy"
-  let obj ← Function.asObject memcpy
+  let obj ←  memcpy.asObject
   let debug ← obj.getDebugString
   IO.println s!"memcpy: {debug}"
+  memcpy.dumpToDot "/tmp/memcpy.dot"
+  let param ← memcpy.getParam 0
+  let obj ← param.asObject
+  let debug ← obj.getDebugString
+  IO.println s!"memcpy param 0: {debug}"
 
 def main : IO Unit := do
   IO.println s!"major version: {getMajorVersion ()}"

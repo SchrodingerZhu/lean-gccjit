@@ -61,11 +61,9 @@ void free(void *ptr);
 
 template <typename T, typename F>
 static inline auto with_allocation(size_t n, F f) {
-#if __has_builtin(__builtin_alloca)
   if (LEAN_LIKELY(sizeof(T) * n <= 64)) {
-    return f(static_cast<T *>(__builtin_alloca(sizeof(T) * n)));
+    return f(static_cast<T *>(LEAN_ALLOCA(sizeof(T) * n)));
   }
-#endif
   auto size = lean_align(sizeof(T) * n, LEAN_OBJECT_SIZE_DELTA);
 #ifdef LEAN_SMALL_ALLOCATOR
   if (size <= LEAN_MAX_SMALL_OBJECT_SIZE) {

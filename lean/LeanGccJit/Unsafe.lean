@@ -7,3 +7,5 @@ import LeanGccJit.Unsafe.Field
 import LeanGccJit.Unsafe.Struct
 import LeanGccJit.Unsafe.Function
 import LeanGccJit.Unsafe.Param
+import LeanGccJit.Unsafe.Block
+import LeanGccJit.Unsafe.Values

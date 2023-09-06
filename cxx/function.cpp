@@ -47,4 +47,31 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_function_as_object(
   auto *obj = gcc_jit_function_as_object(fn_);
   return map_notnull(obj, wrap_pointer<gcc_jit_object>, "invalid function");
 }
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_function_get_param(
+    b_lean_obj_arg fn, b_lean_obj_arg idx, lean_object * /* w */
+) {
+  if (!lean_is_scalar(idx)) {
+    auto error = lean_mk_io_error_invalid_argument(
+        EINVAL, lean_mk_string("idx is not a scalar"));
+    return lean_io_result_mk_error(error);
+  }
+  auto *fn_ = unwrap_pointer<gcc_jit_function>(fn);
+  auto index = lean_unbox(idx);
+  if (index > INT_MAX) {
+    auto error = lean_mk_io_error_invalid_argument(
+        EINVAL, lean_mk_string("idx too large"));
+    return lean_io_result_mk_error(error);
+  }
+  auto index_ = static_cast<int>(index);
+  auto *param = gcc_jit_function_get_param(fn_, index_);
+  return map_notnull(param, wrap_pointer<gcc_jit_param>, "invalid param");
+}
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_function_dump_to_dot(
+    b_lean_obj_arg fn, b_lean_obj_arg path, lean_object * /* w */
+) {
+  auto *fn_ = unwrap_pointer<gcc_jit_function>(fn);
+  auto *path_ = lean_string_cstr(path);
+  gcc_jit_function_dump_to_dot(fn_, path_);
+  return lean_io_result_mk_ok(lean_box(0));
+}
 } // namespace lean_gccjit
