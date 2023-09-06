@@ -27,14 +27,6 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_location(
     return map_notnull(loc, wrap_pointer<gcc_jit_location>, "invalid context");
 }
 
-extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_location_as_object(
-    b_lean_obj_arg loc,
-    lean_object * /* w */
-)
-{
-    auto * location = unwrap_pointer<gcc_jit_location>(loc);
-    auto * obj = gcc_jit_location_as_object(location);
-    return map_notnull(obj, wrap_pointer<gcc_jit_object>, "invalid location");
-}
+LEAN_GCC_JIT_UPCAST(location, object)
 
 } // namespace lean_gccjit

@@ -42,15 +42,9 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_struct_type(
     });
     return map_notnull(result, wrap_pointer<gcc_jit_struct>, "failed to create struct");
 }
-extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_struct_as_type(
-    b_lean_obj_arg st,
-    lean_object * /* w */
-)
-{
-    auto * st_ = unwrap_pointer<gcc_jit_struct>(st);
-    auto * obj = gcc_jit_struct_as_type(st_);
-    return map_notnull(obj, wrap_pointer<gcc_jit_type>, "invalid struct");
-}
+
+LEAN_GCC_JIT_UPCAST(struct, type)
+
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_struct_set_fields(
     b_lean_obj_arg st,
     b_lean_obj_arg loc,

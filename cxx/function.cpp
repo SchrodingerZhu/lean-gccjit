@@ -53,15 +53,9 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_get_builtin_function(
     auto result = gcc_jit_context_get_builtin_function(context, function_name);
     return map_notnull(result, wrap_pointer<gcc_jit_function>, "failed to get builtin function");
 }
-extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_function_as_object(
-    b_lean_obj_arg fn,
-    lean_object * /* w */
-)
-{
-    auto * fn_ = unwrap_pointer<gcc_jit_function>(fn);
-    auto * obj = gcc_jit_function_as_object(fn_);
-    return map_notnull(obj, wrap_pointer<gcc_jit_object>, "invalid function");
-}
+
+LEAN_GCC_JIT_UPCAST(function, object)
+
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_function_get_param(
     b_lean_obj_arg fn,
     b_lean_obj_arg idx,

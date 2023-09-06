@@ -78,4 +78,181 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_struct_constructor(
     }
     return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create struct constructor");
 }
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_union_constructor(
+    b_lean_obj_arg ctx,   /* @& Context */
+    b_lean_obj_arg loc,   /* @& Location */
+    b_lean_obj_arg ty,    /* @& JitType */
+    b_lean_obj_arg field, /* @& Field */
+    b_lean_obj_arg value, /* @& Option RValue */
+    lean_object *         /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto type = unwrap_pointer<gcc_jit_type>(ty);
+    auto field_ = unwrap_pointer<gcc_jit_field>(field);
+    auto value_ = lean_obj_tag(value) == 1 ? unwrap_pointer<gcc_jit_rvalue>(lean_ctor_get(value, 0)) : nullptr;
+    auto result = gcc_jit_context_new_union_constructor(context, location, type, field_, value_);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create union constructor");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_array_constructor(
+    b_lean_obj_arg ctx,    /* @& Context */
+    b_lean_obj_arg loc,    /* @& Location */
+    b_lean_obj_arg ty,     /* @& JitType */
+    b_lean_obj_arg values, /* @& Array RValue */
+    lean_object *          /* RealWorld */
+)
+{
+    auto values_len = lean_array_size(values);
+    if (values_len > INT_MAX)
+    {
+        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("too many values"));
+        return lean_io_result_mk_error(error);
+    }
+
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto type = unwrap_pointer<gcc_jit_type>(ty);
+    auto num_values = static_cast<int>(values_len);
+
+    auto result = with_allocation<gcc_jit_rvalue *>(values_len, [=](auto * vbuffer) {
+        for (size_t i = 0; i < values_len; i++)
+        {
+            vbuffer[i] = unwrap_pointer<gcc_jit_rvalue>(lean_to_array(values)->m_data[i]);
+        }
+        return gcc_jit_context_new_array_constructor(context, location, type, num_values, vbuffer);
+    });
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create array constructor");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_global_set_initializer_rvalue(
+    b_lean_obj_arg global, /* @& LValue */
+    b_lean_obj_arg init,   /* @& RValue */
+    lean_object *          /* RealWorld */
+)
+{
+    auto global_ = unwrap_pointer<gcc_jit_lvalue>(global);
+    auto init_ = unwrap_pointer<gcc_jit_rvalue>(init);
+    auto res = gcc_jit_global_set_initializer_rvalue(global_, init_);
+    return map_notnull(res, wrap_pointer<gcc_jit_lvalue>, "failed to set initializer");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_global_set_initializer(
+    b_lean_obj_arg global, /* @& LValue */
+    b_lean_obj_arg blob,   /* @& ByteArray */
+    lean_object *          /* RealWorld */
+)
+{
+    auto global_ = unwrap_pointer<gcc_jit_lvalue>(global);
+    auto blob_ = lean_sarray_cptr(blob);
+    auto num_bytes = lean_sarray_size(blob);
+    auto res = gcc_jit_global_set_initializer(global_, blob_, num_bytes);
+    return map_notnull(res, wrap_pointer<gcc_jit_lvalue>, "failed to set initializer");
+}
+
+LEAN_GCC_JIT_UPCAST(lvalue, object)
+LEAN_GCC_JIT_UPCAST(lvalue, rvalue)
+LEAN_GCC_JIT_UPCAST(rvalue, object)
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_rvalue_from_uint32(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg ty,  /* @& JitType */
+    uint32_t val,       /* UInt32 */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto type = unwrap_pointer<gcc_jit_type>(ty);
+    auto result = gcc_jit_context_new_rvalue_from_int(context, type, static_cast<int>(val));
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create rvalue from uint32");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_rvalue_from_uint64(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg ty,  /* @& JitType */
+    uint64_t val,       /* UInt64 */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto type = unwrap_pointer<gcc_jit_type>(ty);
+    auto result = gcc_jit_context_new_rvalue_from_long(context, type, static_cast<long>(val));
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create rvalue from uint64");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_zero(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg ty,  /* @& JitType */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto type = unwrap_pointer<gcc_jit_type>(ty);
+    auto result = gcc_jit_context_zero(context, type);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create rvalue 0");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_one(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg ty,  /* @& JitType */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto type = unwrap_pointer<gcc_jit_type>(ty);
+    auto result = gcc_jit_context_one(context, type);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create rvalue 1");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_rvalue_from_double(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg ty,  /* @& JitType */
+    double val,         /* @& Float */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto type = unwrap_pointer<gcc_jit_type>(ty);
+    auto result = gcc_jit_context_new_rvalue_from_double(context, type, val);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create rvalue from double");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_rvalue_from_addr(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg ty,  /* @& JitType */
+    size_t val,         /* @& USize */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto type = unwrap_pointer<gcc_jit_type>(ty);
+    auto result = gcc_jit_context_new_rvalue_from_ptr(context, type, reinterpret_cast<void *>(val));
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create rvalue from ptr");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_null(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg ty,  /* @& JitType */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto type = unwrap_pointer<gcc_jit_type>(ty);
+    auto result = gcc_jit_context_null(context, type);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create rvalue null");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_string_literal(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg val, /* @& String */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto val_ = lean_string_cstr(val);
+    auto result = gcc_jit_context_new_string_literal(context, val_);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create rvalue from string literal");
+}
+
 } // namespace lean_gccjit

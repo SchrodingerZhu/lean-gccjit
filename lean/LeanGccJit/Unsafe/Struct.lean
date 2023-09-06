@@ -1,4 +1,5 @@
 import LeanGccJit.Types
+
 @[extern "lean_gcc_jit_context_new_struct_type"]
 opaque Context.newStructType
   (ctx : @& Context) (location : @& Location) (name : @& String) (fields : @& Array Field) : IO Struct

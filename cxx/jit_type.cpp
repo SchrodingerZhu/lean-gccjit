@@ -1,15 +1,7 @@
 #include "common.h"
 namespace lean_gccjit
 {
-extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_type_as_object(
-    b_lean_obj_arg loc,
-    lean_object * /* w */
-)
-{
-    auto * location = unwrap_pointer<gcc_jit_type>(loc);
-    auto * obj = gcc_jit_type_as_object(location);
-    return map_notnull(obj, wrap_pointer<gcc_jit_object>, "invalid location");
-}
+LEAN_GCC_JIT_UPCAST(type, object)
 extern "C" LEAN_EXPORT lean_obj_res
 lean_gcc_jit_context_get_type(b_lean_obj_arg ctx, uint8_t type_, lean_object * /* w */)
 {

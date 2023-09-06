@@ -38,13 +38,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_bitfield(
     auto result = gcc_jit_context_new_bitfield(context, location, ty, field_width, field_name);
     return map_notnull(result, wrap_pointer<gcc_jit_field>, "failed to create field");
 }
-extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_field_as_object(
-    b_lean_obj_arg loc,
-    lean_object * /* w */
-)
-{
-    auto * field = unwrap_pointer<gcc_jit_field>(loc);
-    auto * obj = gcc_jit_field_as_object(field);
-    return map_notnull(obj, wrap_pointer<gcc_jit_object>, "invalid field");
-}
+
+LEAN_GCC_JIT_UPCAST(field, object)
+
 } // namespace lean_gccjit

@@ -106,4 +106,21 @@ static inline auto with_allocation(size_t n, F f)
     return res;
 }
 
+#define LEAN_GCC_JIT_STRINGIFY_(x) #x
+#define LEAN_GCC_JIT_STRINGIFY(x) LEAN_GCC_JIT_STRINGIFY_(x)
+
+#define LEAN_GCC_JIT_UPCAST(A, B)                                                             \
+    extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_##A##_as_##B(                            \
+        b_lean_obj_arg a,                                                                     \
+        lean_object * /* w */                                                                 \
+    )                                                                                         \
+    {                                                                                         \
+        auto * a_ = unwrap_pointer<gcc_jit_##A>(a);                                           \
+        auto * b = gcc_jit_##A##_as_##B(a_);                                                  \
+        return map_notnull(                                                                   \
+            b,                                                                                \
+            wrap_pointer<gcc_jit_##B>,                                                        \
+            "invalid cast from " LEAN_GCC_JIT_STRINGIFY(A) " to " LEAN_GCC_JIT_STRINGIFY(B)); \
+    }
+
 } // namespace lean_gccjit
