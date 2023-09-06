@@ -32,6 +32,9 @@ opaque LValue.asRValue (lval : @& LValue) : IO RValue
 @[extern "lean_gcc_jit_rvalue_as_object"]
 opaque RValue.asObject (rval : @& RValue) : IO Object
 
+@[extern "lean_gcc_jit_rvalue_get_type"]
+opaque RValue.getType(rval : @& RValue) : IO JitType
+
 @[extern "lean_gcc_jit_context_new_rvalue_from_uint32"]
 opaque Context.newRvalueFromUInt32 (ctx : @& Context) (ty : @& JitType) (val : UInt32) : IO RValue
 
@@ -63,3 +66,7 @@ opaque Context.newUnaryOp
 @[extern "lean_gcc_jit_context_new_binary_op"]
 opaque Context.newBinaryOp 
   (ctx : @& Context) (loc : @& Location) (op : @& BinaryOp) (ty : @& JitType) (a : @& RValue) (b : @& RValue) : IO RValue
+
+@[extern "lean_gcc_jit_context_new_comparison"]
+opaque Context.newComparison 
+  (ctx : @& Context) (loc : @& Location) (op : @& Comparison) (a : @& RValue) (b : @& RValue) : IO RValue

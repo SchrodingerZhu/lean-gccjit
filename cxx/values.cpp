@@ -155,6 +155,16 @@ LEAN_GCC_JIT_UPCAST(lvalue, object)
 LEAN_GCC_JIT_UPCAST(lvalue, rvalue)
 LEAN_GCC_JIT_UPCAST(rvalue, object)
 
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_rvalue_get_type(
+    b_lean_obj_arg rv, /* @& RValue */
+    lean_object *      /* RealWorld */
+)
+{
+    auto rvalue = unwrap_pointer<gcc_jit_rvalue>(rv);
+    auto result = gcc_jit_rvalue_get_type(rvalue);
+    return wrap_pointer(result);
+}
+
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_rvalue_from_uint32(
     b_lean_obj_arg ctx, /* @& Context */
     b_lean_obj_arg ty,  /* @& JitType */
@@ -292,5 +302,24 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_binary_op(
     auto result = gcc_jit_context_new_binary_op(context, location, op_, type, a_, b_);
     return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create binary op");
 }
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_comparison(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg loc, /* @& Location */
+    uint8_t cmp,        /* @& Comparison */
+    b_lean_obj_arg a,   /* @& RValue */
+    b_lean_obj_arg b,   /* @& RValue */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto cmp_ = static_cast<gcc_jit_comparison>(cmp);
+    auto a_ = unwrap_pointer<gcc_jit_rvalue>(a);
+    auto b_ = unwrap_pointer<gcc_jit_rvalue>(b);
+    auto result = gcc_jit_context_new_comparison(context, location, cmp_, a_, b_);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create comparison");
+}
+
 
 } // namespace lean_gccjit
