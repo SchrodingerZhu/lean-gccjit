@@ -375,4 +375,36 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_call_through_ptr(
     return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create call through ptr");
 }
 
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_cast(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg loc, /* @& Location */
+    b_lean_obj_arg val, /* @& RValue */
+    b_lean_obj_arg ty,  /* @& JitType */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto val_ = unwrap_pointer<gcc_jit_rvalue>(val);
+    auto ty_ = unwrap_pointer<gcc_jit_type>(ty);
+    auto result = gcc_jit_context_new_cast(context, location, val_, ty_);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create cast");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_bitcast(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg loc, /* @& Location */
+    b_lean_obj_arg val, /* @& RValue */
+    b_lean_obj_arg ty,  /* @& JitType */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto val_ = unwrap_pointer<gcc_jit_rvalue>(val);
+    auto ty_ = unwrap_pointer<gcc_jit_type>(ty);
+    auto result = gcc_jit_context_new_bitcast(context, location, val_, ty_);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create bitcast");
+}
+
 } // namespace lean_gccjit

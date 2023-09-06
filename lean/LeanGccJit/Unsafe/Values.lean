@@ -78,3 +78,11 @@ opaque Context.newCall
 @[extern "lean_gcc_jit_context_new_call_through_ptr"]
 opaque Context.newCallThroughPtr 
   (ctx : @& Context) (loc : @& Location) (fnPtr : @& RValue) (args : @& Array RValue) : IO RValue
+
+@[extern "lean_gcc_jit_context_new_cast"]
+opaque Context.newCast 
+  (ctx : @& Context) (loc : @& Location)  (val : @& RValue) (ty : @& JitType) : IO RValue
+
+@[extern "lean_gcc_jit_context_new_bitcast"]
+opaque Context.newBitCast 
+  (ctx : @& Context) (loc : @& Location)  (val : @& RValue) (ty : @& JitType) : IO RValue
