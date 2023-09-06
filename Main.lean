@@ -54,7 +54,19 @@ def typeCheck5 (ctx : Context) : IO Unit := do
     let obj ← field.asObject
     let debug ← obj.getDebugString
     IO.println s!"field {i}: {debug}"
-  
+
+def typeCheck6 (ctx : Context) : IO Unit := do
+  let location ← ctx.newLocation "test.c" 1 1
+  let tyA ← ctx.getType TypeEnum.ComplexLongDouble
+  let tyA ← (← tyA.getPointer).getVolatile
+  let tyB ← ctx.getType TypeEnum.UnsignedLongLong
+  let void ← ctx.getType TypeEnum.Void
+  let voidPtr ← void.getPointer
+  let funcPtr ← ctx.newFunctionPtrType location voidPtr #[tyA, tyB] true
+  let obj ← funcPtr.asObject
+  let debug ← obj.getDebugString
+  IO.println s!"function pointer: {debug}"
+
 def main : IO Unit := do
   IO.println s!"major version: {getMajorVersion ()}"
   IO.println s!"minor version: {getMinorVersion ()}"
@@ -71,6 +83,7 @@ def main : IO Unit := do
   typeCheck3 ctx
   typeCheck4 ctx
   typeCheck5 ctx
+  typeCheck6 ctx
   IO.println s!"{(← ctx.getFirstError)}"
   ctx.release
   
