@@ -96,6 +96,16 @@ def valueCheck2 (ctx: Context) : IO Unit := do
   let debug ← obj.getDebugString
   IO.println s!"array ctor: {debug}"
 
+def valueCheck3 (ctx: Context) : IO Unit := do
+  let location ← ctx.newLocation "test.c" 2 2
+  let long ← ctx.getType TypeEnum.Long
+  let one ← ctx.one long
+  let negOne ← ctx.newUnaryOp location UnaryOp.Minus long one
+  let onePlusNegOne ← ctx.newBinaryOp location BinaryOp.Plus long one negOne
+  let obj ← onePlusNegOne.asObject
+  let debug ← obj.getDebugString
+  IO.println s!"one + -one: {debug}"
+
 def main : IO Unit := do
   IO.println s!"major version: {getMajorVersion ()}"
   IO.println s!"minor version: {getMinorVersion ()}"
@@ -116,6 +126,7 @@ def main : IO Unit := do
   functionCheck1 ctx
   valueCheck1 ctx
   valueCheck2 ctx
+  valueCheck3 ctx
   IO.println s!"{(← ctx.getFirstError)}"
   ctx.release
   

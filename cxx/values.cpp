@@ -255,4 +255,42 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_string_literal(
     return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create rvalue from string literal");
 }
 
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_unary_op(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg loc, /* @& Location */
+    uint8_t op,         /* @& UnaryOp */
+    b_lean_obj_arg ty,  /* @& JitType */
+    b_lean_obj_arg val, /* @& RValue */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto op_ = static_cast<gcc_jit_unary_op>(op);
+    auto type = unwrap_pointer<gcc_jit_type>(ty);
+    auto val_ = unwrap_pointer<gcc_jit_rvalue>(val);
+    auto result = gcc_jit_context_new_unary_op(context, location, op_, type, val_);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create unary op");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_binary_op(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg loc, /* @& Location */
+    uint8_t op,         /* @& BinaryOp */
+    b_lean_obj_arg ty,  /* @& JitType */
+    b_lean_obj_arg a,   /* @& RValue */
+    b_lean_obj_arg b,   /* @& RValue */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto op_ = static_cast<gcc_jit_binary_op>(op);
+    auto type = unwrap_pointer<gcc_jit_type>(ty);
+    auto a_ = unwrap_pointer<gcc_jit_rvalue>(a);
+    auto b_ = unwrap_pointer<gcc_jit_rvalue>(b);
+    auto result = gcc_jit_context_new_binary_op(context, location, op_, type, a_, b_);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create binary op");
+}
+
 } // namespace lean_gccjit

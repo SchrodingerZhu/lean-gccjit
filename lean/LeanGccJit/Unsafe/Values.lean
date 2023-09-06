@@ -55,3 +55,11 @@ opaque Context.null (ctx : @& Context) (ty : @& JitType): IO RValue
 
 @[extern "lean_gcc_jit_context_new_string_literal"]
 opaque Context.newStringLiteral (ctx : @& Context) (str: @& String) : IO RValue
+
+@[extern "lean_gcc_jit_context_new_unary_op"]
+opaque Context.newUnaryOp 
+  (ctx : @& Context) (loc : @& Location) (op : @& UnaryOp) (ty : @& JitType) (val : @& RValue) : IO RValue
+
+@[extern "lean_gcc_jit_context_new_binary_op"]
+opaque Context.newBinaryOp 
+  (ctx : @& Context) (loc : @& Location) (op : @& BinaryOp) (ty : @& JitType) (a : @& RValue) (b : @& RValue) : IO RValue
