@@ -5,3 +5,5 @@ import LeanGccJit.Unsafe.Location
 import LeanGccJit.Unsafe.JitType
 import LeanGccJit.Unsafe.Field
 import LeanGccJit.Unsafe.Struct
+import LeanGccJit.Unsafe.Function
+import LeanGccJit.Unsafe.Param

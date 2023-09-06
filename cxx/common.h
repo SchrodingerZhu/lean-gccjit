@@ -1,5 +1,6 @@
 #pragma once
 #include <cerrno>
+#include <climits>
 #include <cstdint>
 #include <lean/lean.h>
 #include <libgccjit.h>

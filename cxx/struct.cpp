@@ -1,6 +1,4 @@
 #include "common.h"
-#include "lean/lean.h"
-#include <climits>
 namespace lean_gccjit {
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_opaque_struct(
     b_lean_obj_arg ctx, b_lean_obj_arg loc, b_lean_obj_arg name,

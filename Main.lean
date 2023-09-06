@@ -67,6 +67,12 @@ def typeCheck6 (ctx : Context) : IO Unit := do
   let debug ← obj.getDebugString
   IO.println s!"function pointer: {debug}"
 
+def functionCheck1 (ctx: Context) : IO Unit := do
+  let memcpy ← ctx.getBuiltinFunction "memcpy"
+  let obj ← Function.asObject memcpy
+  let debug ← obj.getDebugString
+  IO.println s!"memcpy: {debug}"
+
 def main : IO Unit := do
   IO.println s!"major version: {getMajorVersion ()}"
   IO.println s!"minor version: {getMinorVersion ()}"
@@ -84,6 +90,7 @@ def main : IO Unit := do
   typeCheck4 ctx
   typeCheck5 ctx
   typeCheck6 ctx
+  functionCheck1 ctx
   IO.println s!"{(← ctx.getFirstError)}"
   ctx.release
   

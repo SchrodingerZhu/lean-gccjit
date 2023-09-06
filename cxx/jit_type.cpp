@@ -1,5 +1,4 @@
 #include "common.h"
-#include <cstdint>
 namespace lean_gccjit {
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_type_as_object(
     b_lean_obj_arg loc, lean_object * /* w */
