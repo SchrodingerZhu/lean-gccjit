@@ -78,6 +78,24 @@ def functionCheck1 (ctx: Context) : IO Unit := do
   let debug ← obj.getDebugString
   IO.println s!"memcpy param 0: {debug}"
 
+def valueCheck1 (ctx: Context) : IO Unit := do
+  let location ← ctx.newLocation "test.c" 2 2
+  let long ← ctx.getType TypeEnum.Long
+  let g ← ctx.newGlobal location GlobalKind.Exported long "G_test"
+  let obj ← g.asObject
+  let debug ← obj.getDebugString
+  IO.println s!"global: {debug}"
+
+def valueCheck2 (ctx: Context) : IO Unit := do
+  let location ← ctx.newLocation "test.c" 2 2
+  let long ← ctx.getType TypeEnum.Long
+  let arr ← ctx.newArrayType location long 3
+  let one ← ctx.one long
+  let ctor ← ctx.newArrayConstructor location arr #[one, one, one]
+  let obj ← ctor.asObject
+  let debug ← obj.getDebugString
+  IO.println s!"array ctor: {debug}"
+
 def main : IO Unit := do
   IO.println s!"major version: {getMajorVersion ()}"
   IO.println s!"minor version: {getMinorVersion ()}"
@@ -96,6 +114,8 @@ def main : IO Unit := do
   typeCheck5 ctx
   typeCheck6 ctx
   functionCheck1 ctx
+  valueCheck1 ctx
+  valueCheck2 ctx
   IO.println s!"{(← ctx.getFirstError)}"
   ctx.release
   
