@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <lean/lean.h>
 #include <libgccjit.h>
+#if __has_include(<alloca.h>)
+#include <alloca.h>
+#endif
 namespace lean_gccjit {
 
 static_assert(sizeof(size_t) >= sizeof(void *),
