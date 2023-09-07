@@ -76,6 +76,22 @@ static inline lean_obj_res lean_option_string(const char * str)
     }
 }
 
+template <typename T>
+static inline lean_obj_res wrap_option(T * data)
+{
+    if (data == nullptr)
+    {
+        return lean_box(0);
+    }
+    else
+    {
+        auto x = wrap_pointer(data);
+        auto some = lean_alloc_ctor(1, 1, 0);
+        lean_ctor_set(some, 0, x);
+        return some;
+    }
+}
+
 template <typename T, typename C, typename F>
 static inline lean_obj_res map_condition(T && res, C && c, F && f, const char * msg)
 {
