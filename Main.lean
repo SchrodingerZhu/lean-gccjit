@@ -151,6 +151,7 @@ def main : IO Unit := do
   blockCheck1 ctx
   ctx.compileToFile OutputKind.Executable "/tmp/test.o"
   ctx.dumpToFile "/tmp/test.data" true
+  ctx.dumpReproducerToFile "/tmp/test.reproducer"
   let res ← ctx.compile
   let main ← res.getCode "main"
   IO.println s!"{(← ctx.getFirstError)}"
