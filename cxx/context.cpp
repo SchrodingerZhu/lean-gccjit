@@ -148,4 +148,30 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_child_context(
     auto child = gcc_jit_context_new_child_context(context);
     return map_notnull(child, wrap_pointer<gcc_jit_context>, "failed to create child context");
 }
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_dump_reproducer_to_file(
+    b_lean_obj_arg ctx,  /* @& Context */
+    b_lean_obj_arg path, /* @& String */
+    lean_object *        /* w */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto path_ = lean_string_cstr(path);
+    gcc_jit_context_dump_reproducer_to_file(context, path_);
+    return lean_io_result_mk_ok(lean_box(0));
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_register_dump_buffer(
+    b_lean_obj_arg ctx,    /* @& Context */
+    b_lean_obj_arg name,   /* @& String */
+    b_lean_obj_arg buffer, /* @& DynamicBuffer */
+    lean_object *          /* w */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto name_ = lean_string_cstr(name);
+    auto buffer_ = unwrap_pointer<char *>(buffer);
+    gcc_jit_context_enable_dump(context, name_, buffer_);
+    return lean_io_result_mk_ok(lean_box(0));
+}
 } // namespace lean_gccjit

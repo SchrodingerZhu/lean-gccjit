@@ -47,3 +47,9 @@ opaque Context.getLastError: @& Context → IO (Option String)
 
 @[extern "lean_gcc_jit_context_new_child_context"]
 opaque Context.newChildContext: @& Context → IO Context
+
+@[extern "lean_gcc_jit_context_dump_reproducer_to_file"]
+opaque Context.dumpReproducerToFile: @& Context → @& String → IO PUnit
+
+@[extern "lean_gcc_jit_context_register_dump_buffer"]
+opaque Context.registerDumpBuffer: @& Context → @& String → @& DynamicBuffer → IO PUnit
