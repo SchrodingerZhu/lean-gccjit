@@ -10,7 +10,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_param(
 )
 {
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
-    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto location = unwrap_option<gcc_jit_location>(loc);
     auto type = unwrap_pointer<gcc_jit_type>(ty);
     auto param_name = lean_string_cstr(name);
     auto result = gcc_jit_context_new_param(context, location, type, param_name);

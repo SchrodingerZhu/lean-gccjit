@@ -10,7 +10,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_field(
 )
 {
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
-    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto location = unwrap_option<gcc_jit_location>(loc);
     auto ty = unwrap_pointer<gcc_jit_type>(type);
     auto fieldname = lean_string_cstr(name);
     auto result = gcc_jit_context_new_field(context, location, ty, fieldname);
@@ -27,7 +27,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_bitfield(
 {
     LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(width));
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
-    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto location = unwrap_option<gcc_jit_location>(loc);
     auto ty = unwrap_pointer<gcc_jit_type>(type);
     auto field_width = lean_scalar_to_int(width);
     auto field_name = lean_string_cstr(name);

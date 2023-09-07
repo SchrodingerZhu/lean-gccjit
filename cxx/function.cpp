@@ -15,7 +15,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_function(
     auto params_len = lean_array_size(params);
     LEAN_GCC_JIT_FAILED_IF(params_len > INT_MAX);
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
-    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto location = unwrap_option<gcc_jit_location>(loc);
     auto function_kind = static_cast<gcc_jit_function_kind>(kind);
     auto return_type = unwrap_pointer<gcc_jit_type>(ret_type);
     auto function_name = lean_string_cstr(name);

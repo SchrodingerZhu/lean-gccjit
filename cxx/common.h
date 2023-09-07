@@ -28,6 +28,31 @@ static inline T * unwrap_pointer(b_lean_obj_arg obj)
 }
 
 template <typename T>
+static inline T * unwrap_option(b_lean_obj_arg obj)
+{
+    if (LEAN_UNLIKELY(lean_obj_tag(obj) == 0))
+    {
+        return nullptr;
+    }
+    else
+    {
+        return unwrap_pointer<T>(lean_ctor_get(obj, 0));
+    }
+}
+
+static inline const char * unwrap_option_str(b_lean_obj_arg obj)
+{
+    if (LEAN_UNLIKELY(lean_obj_tag(obj) == 0))
+    {
+        return nullptr;
+    }
+    else
+    {
+        return lean_string_cstr(lean_ctor_get(obj, 0));
+    }
+}
+
+template <typename T>
 static inline void unwrap_area(size_t n, lean_object * const * __restrict src, T ** __restrict dst)
 {
     for (size_t i = 0; i < n; i++)

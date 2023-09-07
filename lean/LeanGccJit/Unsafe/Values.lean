@@ -1,19 +1,19 @@
 import LeanGccJit.Types
 
 @[extern "lean_gcc_jit_context_new_global"]
-opaque Context.newGlobal (ctx : @& Context) (loc : @& Location) (kind: @& GlobalKind) (type : @& JitType) (name : @& String)  : IO LValue
+opaque Context.newGlobal (ctx : @& Context) (loc : @& Option Location) (kind: @& GlobalKind) (type : @& JitType) (name : @& String)  : IO LValue
 
 @[extern "lean_gcc_jit_context_new_struct_constructor"]
 opaque Context.newStructConstructor 
-  (ctx : @& Context) (loc : @& Location) (type : @& JitType) (fields: @& Option (Array Field)) (values: @& Array RValue)  : IO RValue
+  (ctx : @& Context) (loc : @& Option Location) (type : @& JitType) (fields: @& Option (Array Field)) (values: @& Array RValue)  : IO RValue
 
 @[extern "lean_gcc_jit_context_new_union_constructor"]
 opaque Context.newUnionConstructor 
-  (ctx : @& Context) (loc : @& Location) (type : @& JitType) (field: @& Field) (value: @& Option RValue)  : IO RValue
+  (ctx : @& Context) (loc : @& Option Location) (type : @& JitType) (field: @& Field) (value: @& Option RValue)  : IO RValue
 
 @[extern "lean_gcc_jit_context_new_array_constructor"]
 opaque Context.newArrayConstructor 
-  (ctx : @& Context) (loc : @& Location) (type : @& JitType) (values: @& Array RValue)  : IO RValue
+  (ctx : @& Context) (loc : @& Option Location) (type : @& JitType) (values: @& Array RValue)  : IO RValue
 
 @[extern "lean_gcc_jit_global_set_initializer_rvalue"]
 opaque Global.setInitializerRValue 
@@ -61,31 +61,31 @@ opaque Context.newStringLiteral (ctx : @& Context) (str: @& String) : IO RValue
 
 @[extern "lean_gcc_jit_context_new_unary_op"]
 opaque Context.newUnaryOp 
-  (ctx : @& Context) (loc : @& Location) (op : @& UnaryOp) (ty : @& JitType) (val : @& RValue) : IO RValue
+  (ctx : @& Context) (loc : @& Option Location) (op : @& UnaryOp) (ty : @& JitType) (val : @& RValue) : IO RValue
 
 @[extern "lean_gcc_jit_context_new_binary_op"]
 opaque Context.newBinaryOp 
-  (ctx : @& Context) (loc : @& Location) (op : @& BinaryOp) (ty : @& JitType) (a : @& RValue) (b : @& RValue) : IO RValue
+  (ctx : @& Context) (loc : @& Option Location) (op : @& BinaryOp) (ty : @& JitType) (a : @& RValue) (b : @& RValue) : IO RValue
 
 @[extern "lean_gcc_jit_context_new_comparison"]
 opaque Context.newComparison 
-  (ctx : @& Context) (loc : @& Location) (op : @& Comparison) (a : @& RValue) (b : @& RValue) : IO RValue
+  (ctx : @& Context) (loc : @& Option Location) (op : @& Comparison) (a : @& RValue) (b : @& RValue) : IO RValue
 
 @[extern "lean_gcc_jit_context_new_call"]
 opaque Context.newCall 
-  (ctx : @& Context) (loc : @& Location) (fn : @& Func) (args : @& Array RValue) : IO RValue
+  (ctx : @& Context) (loc : @& Option Location) (fn : @& Func) (args : @& Array RValue) : IO RValue
 
 @[extern "lean_gcc_jit_context_new_call_through_ptr"]
 opaque Context.newCallThroughPtr 
-  (ctx : @& Context) (loc : @& Location) (fnPtr : @& RValue) (args : @& Array RValue) : IO RValue
+  (ctx : @& Context) (loc : @& Option Location) (fnPtr : @& RValue) (args : @& Array RValue) : IO RValue
 
 @[extern "lean_gcc_jit_context_new_cast"]
 opaque Context.newCast 
-  (ctx : @& Context) (loc : @& Location)  (val : @& RValue) (ty : @& JitType) : IO RValue
+  (ctx : @& Context) (loc : @& Option Location)  (val : @& RValue) (ty : @& JitType) : IO RValue
 
 @[extern "lean_gcc_jit_context_new_bitcast"]
 opaque Context.newBitCast 
-  (ctx : @& Context) (loc : @& Location)  (val : @& RValue) (ty : @& JitType) : IO RValue
+  (ctx : @& Context) (loc : @& Option Location)  (val : @& RValue) (ty : @& JitType) : IO RValue
 
 @[extern "lean_gcc_jit_lvalue_set_alignment"]
 opaque LValue.setAlignment (lval : @& LValue) (align : @& Nat) : IO PUnit
@@ -95,27 +95,27 @@ opaque LValue.getAlignment (lval : @& LValue) : IO Nat
 
 @[extern "lean_gcc_jit_context_new_array_access"]
 opaque Context.newArrayAccess 
-  (ctx : @& Context) (loc : @& Location) (ptr : @& RValue) (index : @& RValue) : IO LValue
+  (ctx : @& Context) (loc : @& Option Location) (ptr : @& RValue) (index : @& RValue) : IO LValue
 
 @[extern "lean_gcc_jit_lvalue_access_field"]
 opaque LValue.accessField 
-  (lval : @& LValue) (loc : @& Location) (field : @& Field) : IO LValue
+  (lval : @& LValue) (loc : @& Option Location) (field : @& Field) : IO LValue
 
 @[extern "lean_gcc_jit_rvalue_access_field"]
 opaque RValue.accessField 
-  (rval : @& RValue) (loc : @& Location) (field : @& Field) : IO RValue
+  (rval : @& RValue) (loc : @& Option Location) (field : @& Field) : IO RValue
 
 @[extern "lean_gcc_jit_rvalue_dereference_field"]
 opaque RValue.dereferenceField 
-  (rval : @& RValue) (loc : @& Location) (field : @& Field) : IO LValue
+  (rval : @& RValue) (loc : @& Option Location) (field : @& Field) : IO LValue
 
 @[extern "lean_gcc_jit_rvalue_dereference"]
 opaque RValue.dereference
-  (rval : @& RValue) (loc : @& Location) : IO LValue
+  (rval : @& RValue) (loc : @& Option Location) : IO LValue
 
 @[extern "lean_gcc_jit_lvalue_get_address"]
 opaque LValue.getAddress
-  (lval : @& RValue) (loc : @& Location) : IO RValue
+  (lval : @& RValue) (loc : @& Option Location) : IO RValue
 
 @[extern "lean_gcc_jit_lvalue_set_tls_model"]
 opaque LValue.setTlsModel
@@ -131,4 +131,4 @@ opaque LValue.setRegisterName
 
 @[extern "lean_gcc_jit_function_new_local"]
 opaque Func.newLocal
-  (func : @& Func) (loc : @& Location) (ty : @& JitType) (name : @& String) : IO LValue
+  (func : @& Func) (loc : @& Option Location) (ty : @& JitType) (name : @& String) : IO LValue

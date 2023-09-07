@@ -8,7 +8,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_function_new_block(
 )
 {
     auto * function = unwrap_pointer<gcc_jit_function>(func);
-    auto block_name = lean_string_cstr(name);
+    auto block_name = unwrap_option_str(name);
     auto * block = gcc_jit_function_new_block(function, block_name);
     return map_notnull(block, wrap_pointer<gcc_jit_block>, "invalid block");
 }
@@ -33,7 +33,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_add_eval(
 )
 {
     auto * block_ = unwrap_pointer<gcc_jit_block>(block);
-    auto * location = unwrap_pointer<gcc_jit_location>(loc);
+    auto * location = unwrap_option<gcc_jit_location>(loc);
     auto * rvalue_ = unwrap_pointer<gcc_jit_rvalue>(rvalue);
     gcc_jit_block_add_eval(block_, location, rvalue_);
     return lean_io_result_mk_ok(lean_box(0));
@@ -48,7 +48,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_add_assignment(
 )
 {
     auto * block_ = unwrap_pointer<gcc_jit_block>(block);
-    auto * location = unwrap_pointer<gcc_jit_location>(loc);
+    auto * location = unwrap_option<gcc_jit_location>(loc);
     auto * lvalue_ = unwrap_pointer<gcc_jit_lvalue>(lvalue);
     auto * rvalue_ = unwrap_pointer<gcc_jit_rvalue>(rvalue);
     gcc_jit_block_add_assignment(block_, location, lvalue_, rvalue_);
@@ -65,7 +65,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_add_assignment_op(
 )
 {
     auto * block_ = unwrap_pointer<gcc_jit_block>(block);
-    auto * location = unwrap_pointer<gcc_jit_location>(loc);
+    auto * location = unwrap_option<gcc_jit_location>(loc);
     auto * lvalue_ = unwrap_pointer<gcc_jit_lvalue>(lvalue);
     auto binary_op = static_cast<gcc_jit_binary_op>(bin_op);
     auto * rvalue_ = unwrap_pointer<gcc_jit_rvalue>(rvalue);
@@ -81,7 +81,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_add_comment(
 )
 {
     auto * block_ = unwrap_pointer<gcc_jit_block>(block);
-    auto * location = unwrap_pointer<gcc_jit_location>(loc);
+    auto * location = unwrap_option<gcc_jit_location>(loc);
     auto comment_ = lean_string_cstr(comment);
     gcc_jit_block_add_comment(block_, location, comment_);
     return lean_io_result_mk_ok(lean_box(0));
@@ -97,7 +97,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_end_with_conditional(
 )
 {
     auto * block_ = unwrap_pointer<gcc_jit_block>(block);
-    auto * location = unwrap_pointer<gcc_jit_location>(loc);
+    auto * location = unwrap_option<gcc_jit_location>(loc);
     auto * bval_ = unwrap_pointer<gcc_jit_rvalue>(bval);
     auto * on_true_ = unwrap_pointer<gcc_jit_block>(on_true);
     auto * on_false_ = unwrap_pointer<gcc_jit_block>(on_false);
@@ -113,7 +113,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_end_with_jump(
 )
 {
     auto * block_ = unwrap_pointer<gcc_jit_block>(block);
-    auto * location = unwrap_pointer<gcc_jit_location>(loc);
+    auto * location = unwrap_option<gcc_jit_location>(loc);
     auto * dest_ = unwrap_pointer<gcc_jit_block>(dest);
     gcc_jit_block_end_with_jump(block_, location, dest_);
     return lean_io_result_mk_ok(lean_box(0));
@@ -127,7 +127,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_end_with_return(
 )
 {
     auto * block_ = unwrap_pointer<gcc_jit_block>(block);
-    auto * location = unwrap_pointer<gcc_jit_location>(loc);
+    auto * location = unwrap_option<gcc_jit_location>(loc);
     auto * rvalue_ = unwrap_pointer<gcc_jit_rvalue>(rvalue);
     gcc_jit_block_end_with_return(block_, location, rvalue_);
     return lean_io_result_mk_ok(lean_box(0));
@@ -140,7 +140,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_end_with_void_return(
 )
 {
     auto * block_ = unwrap_pointer<gcc_jit_block>(block);
-    auto * location = unwrap_pointer<gcc_jit_location>(loc);
+    auto * location = unwrap_option<gcc_jit_location>(loc);
     gcc_jit_block_end_with_void_return(block_, location);
     return lean_io_result_mk_ok(lean_box(0));
 }

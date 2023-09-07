@@ -70,7 +70,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_array_type(
 {
     LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(num_elements));
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
-    auto loc = unwrap_pointer<gcc_jit_location>(location);
+    auto loc = unwrap_option<gcc_jit_location>(location);
     auto element = unwrap_pointer<gcc_jit_type>(element_type);
     auto elements = lean_scalar_to_int(num_elements);
     auto result = gcc_jit_context_new_array_type(context, loc, element, elements);
@@ -88,7 +88,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_union_type(
     auto array_len = lean_array_size(fields);
     LEAN_GCC_JIT_FAILED_IF(array_len > INT_MAX);
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
-    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto location = unwrap_option<gcc_jit_location>(loc);
     auto union_name = lean_string_cstr(name);
     auto num_fields = static_cast<int>(array_len);
     gcc_jit_type * result = with_allocation<gcc_jit_field *>(array_len, [=](gcc_jit_field ** ptr) {
@@ -110,7 +110,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_function_ptr_type(
     auto array_len = lean_array_size(params);
     LEAN_GCC_JIT_FAILED_IF(array_len > INT_MAX);
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
-    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto location = unwrap_option<gcc_jit_location>(loc);
     auto return_type = unwrap_pointer<gcc_jit_type>(ret_ty);
     auto num_params = static_cast<int>(array_len);
     auto variadic = static_cast<int>(is_variadic);
