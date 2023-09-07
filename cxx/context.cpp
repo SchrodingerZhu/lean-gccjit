@@ -21,11 +21,7 @@ lean_gcc_jit_context_set_str_option(b_lean_obj_arg ctx, b_lean_obj_arg opt, b_le
 {
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto option = static_cast<gcc_jit_str_option>(lean_unbox(opt));
-    if (option >= GCC_JIT_NUM_STR_OPTIONS)
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("invalid StrOption"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(option >= GCC_JIT_NUM_STR_OPTIONS);
     auto val = lean_string_cstr(value);
     gcc_jit_context_set_str_option(context, option, val);
     return lean_io_result_mk_ok(lean_box(0));
@@ -36,16 +32,8 @@ lean_gcc_jit_context_set_int_option(b_lean_obj_arg ctx, b_lean_obj_arg opt, b_le
 {
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto option = static_cast<gcc_jit_int_option>(lean_unbox(opt));
-    if (option >= GCC_JIT_NUM_INT_OPTIONS)
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("invalid IntOption"));
-        return lean_io_result_mk_error(error);
-    }
-    if (!lean_is_scalar(value))
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("value is not a scalar"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(option >= GCC_JIT_NUM_INT_OPTIONS);
+    LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(value));
     auto val = lean_scalar_to_int(value);
     gcc_jit_context_set_int_option(context, option, val);
     return lean_io_result_mk_ok(lean_box(0));
@@ -56,11 +44,7 @@ lean_gcc_jit_context_set_bool_option(b_lean_obj_arg ctx, uint8_t opt, uint8_t va
 {
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto option = static_cast<gcc_jit_bool_option>(opt);
-    if (option >= GCC_JIT_NUM_BOOL_OPTIONS)
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("invalid BoolOption"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(option >= GCC_JIT_NUM_BOOL_OPTIONS);
     gcc_jit_context_set_bool_option(context, option, static_cast<int>(value));
     return lean_io_result_mk_ok(lean_box(0));
 }
@@ -131,16 +115,8 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_logfile(
     b_lean_obj_arg verbosity,
     lean_object * /* w */)
 {
-    if (!lean_is_scalar(flags))
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("value is not a scalar"));
-        return lean_io_result_mk_error(error);
-    }
-    if (!lean_is_scalar(verbosity))
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("verbosity is not a scalar"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(flags));
+    LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(verbosity));
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto f = lean_scalar_to_int(flags);
     auto v = lean_scalar_to_int(verbosity);

@@ -29,12 +29,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_struct_constructor(
 )
 {
     auto values_len = lean_array_size(values);
-    if (values_len > INT_MAX)
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("too many values"));
-        return lean_io_result_mk_error(error);
-    }
-
+    LEAN_GCC_JIT_FAILED_IF(values_len > INT_MAX);
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto location = unwrap_pointer<gcc_jit_location>(loc);
     auto type = unwrap_pointer<gcc_jit_type>(ty);
@@ -46,12 +41,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_struct_constructor(
     {
         auto fields_ = lean_ctor_get(fields, 0);
         auto fields_len = lean_array_size(fields_);
-        if (fields_len != values_len)
-        {
-            auto error
-                = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("fields and values have different lengths"));
-            return lean_io_result_mk_error(error);
-        }
+        LEAN_GCC_JIT_FAILED_IF(fields_len != values_len);
         result = with_allocation<gcc_jit_rvalue *>(values_len, [=](auto * vbuffer) {
             return with_allocation<gcc_jit_field *>(fields_len, [=](auto * fbuffer) {
                 unwrap_area(fields_len, lean_array_cptr(fields_), fbuffer);
@@ -96,12 +86,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_array_constructor(
 )
 {
     auto values_len = lean_array_size(values);
-    if (values_len > INT_MAX)
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("too many values"));
-        return lean_io_result_mk_error(error);
-    }
-
+    LEAN_GCC_JIT_FAILED_IF(values_len > INT_MAX);
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto location = unwrap_pointer<gcc_jit_location>(loc);
     auto type = unwrap_pointer<gcc_jit_type>(ty);
@@ -317,11 +302,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_call(
     lean_object *        /* RealWorld */
 )
 {
-    if (lean_array_size(args) > INT_MAX)
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("too many args"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(lean_array_size(args) > INT_MAX);
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto location = unwrap_pointer<gcc_jit_location>(loc);
     auto fn_ = unwrap_pointer<gcc_jit_function>(fn);
@@ -341,11 +322,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_call_through_ptr(
     lean_object *          /* RealWorld */
 )
 {
-    if (lean_array_size(args) > INT_MAX)
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("too many args"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(lean_array_size(args) > INT_MAX);
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto location = unwrap_pointer<gcc_jit_location>(loc);
     auto fn_ptr_ = unwrap_pointer<gcc_jit_rvalue>(fn_ptr);

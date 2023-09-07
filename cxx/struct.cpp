@@ -24,11 +24,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_struct_type(
 )
 {
     auto array_len = lean_array_size(fields);
-    if (array_len > INT_MAX)
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("too many fields"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(array_len > INT_MAX);
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto location = unwrap_pointer<gcc_jit_location>(loc);
     auto struct_name = lean_string_cstr(name);
@@ -50,11 +46,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_struct_set_fields(
 )
 {
     auto array_len = lean_array_size(fields);
-    if (array_len > INT_MAX)
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("too many fields"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(array_len > INT_MAX);
     auto st_ = unwrap_pointer<gcc_jit_struct>(st);
     auto location = unwrap_pointer<gcc_jit_location>(loc);
     auto num_fields = static_cast<int>(array_len);
@@ -72,11 +64,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_struct_get_field(
     lean_object * /* w */
 )
 {
-    if (!lean_is_scalar(idx))
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("idx is not a scalar"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(idx));
     auto st_ = unwrap_pointer<gcc_jit_struct>(st);
     auto index = lean_unbox(idx);
     auto result = gcc_jit_struct_get_field(st_, index);

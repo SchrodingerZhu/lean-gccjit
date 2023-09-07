@@ -117,4 +117,14 @@ static inline auto with_allocation(size_t n, F f)
             "invalid cast from " LEAN_GCC_JIT_STRINGIFY(A) " to " LEAN_GCC_JIT_STRINGIFY(B)); \
     }
 
+#define LEAN_GCC_JIT_FAILED_IF(COND)                                                       \
+    do                                                                                     \
+    {                                                                                      \
+        if (LEAN_UNLIKELY(COND))                                                           \
+        {                                                                                  \
+            auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string(#COND)); \
+            return lean_io_result_mk_error(error);                                         \
+        }                                                                                  \
+    } while (false)
+
 } // namespace lean_gccjit

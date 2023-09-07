@@ -17,11 +17,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_get_int_type(
     lean_object * /* w */)
 {
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
-    if (!lean_is_scalar(num_bytes))
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("num_bytes is not a scalar"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(num_bytes));
     auto bytes = lean_scalar_to_int(num_bytes);
     auto result = gcc_jit_context_get_int_type(context, bytes, static_cast<int>(is_signed));
     return map_notnull(result, wrap_pointer<gcc_jit_type>, "invalid type");
@@ -72,11 +68,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_array_type(
     lean_object * /* w */
 )
 {
-    if (!lean_is_scalar(num_elements))
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("num_elements is not a scalar"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(num_elements));
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto loc = unwrap_pointer<gcc_jit_location>(location);
     auto element = unwrap_pointer<gcc_jit_type>(element_type);
@@ -94,11 +86,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_union_type(
 )
 {
     auto array_len = lean_array_size(fields);
-    if (array_len > INT_MAX)
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("too many fields"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(array_len > INT_MAX);
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto location = unwrap_pointer<gcc_jit_location>(loc);
     auto union_name = lean_string_cstr(name);
@@ -120,11 +108,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_function_ptr_type(
 )
 {
     auto array_len = lean_array_size(params);
-    if (array_len > INT_MAX)
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("too many params"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(array_len > INT_MAX);
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto location = unwrap_pointer<gcc_jit_location>(loc);
     auto return_type = unwrap_pointer<gcc_jit_type>(ret_ty);

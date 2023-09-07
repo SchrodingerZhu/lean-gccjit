@@ -13,11 +13,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_function(
 )
 {
     auto params_len = lean_array_size(params);
-    if (params_len > INT_MAX)
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("too many params"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(params_len > INT_MAX);
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto location = unwrap_pointer<gcc_jit_location>(loc);
     auto function_kind = static_cast<gcc_jit_function_kind>(kind);
@@ -59,18 +55,10 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_function_get_param(
     lean_object * /* w */
 )
 {
-    if (!lean_is_scalar(idx))
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("idx is not a scalar"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(idx));
     auto * fn_ = unwrap_pointer<gcc_jit_function>(fn);
     auto index = lean_unbox(idx);
-    if (index > INT_MAX)
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("idx too large"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(index > INT_MAX);
     auto index_ = static_cast<int>(index);
     auto * param = gcc_jit_function_get_param(fn_, index_);
     return map_notnull(param, wrap_pointer<gcc_jit_param>, "invalid param");

@@ -25,11 +25,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_bitfield(
     lean_object * /* w */
 )
 {
-    if (!lean_is_scalar(width))
-    {
-        auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string("width is not a scalar"));
-        return lean_io_result_mk_error(error);
-    }
+    LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(width));
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto location = unwrap_pointer<gcc_jit_location>(loc);
     auto ty = unwrap_pointer<gcc_jit_type>(type);
