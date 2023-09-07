@@ -138,4 +138,14 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_get_last_error(b_lean_o
     auto error = gcc_jit_context_get_last_error(context);
     return lean_io_result_mk_ok(lean_option_string(error));
 }
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_child_context(
+    b_lean_obj_arg ctx,
+    lean_object * /* w */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto child = gcc_jit_context_new_child_context(context);
+    return map_notnull(child, wrap_pointer<gcc_jit_context>, "failed to create child context");
+}
 } // namespace lean_gccjit

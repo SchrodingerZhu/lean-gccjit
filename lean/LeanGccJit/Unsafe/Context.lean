@@ -44,3 +44,6 @@ opaque Context.getFirstError: @& Context → IO (Option String)
 
 @[extern "lean_gcc_jit_context_get_last_error"]
 opaque Context.getLastError: @& Context → IO (Option String)
+
+@[extern "lean_gcc_jit_context_new_child_context"]
+opaque Context.newChildContext: @& Context → IO Context

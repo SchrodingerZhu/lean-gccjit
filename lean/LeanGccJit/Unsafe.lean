@@ -9,3 +9,4 @@ import LeanGccJit.Unsafe.Function
 import LeanGccJit.Unsafe.Param
 import LeanGccJit.Unsafe.Block
 import LeanGccJit.Unsafe.Values
+import LeanGccJit.Unsafe.Case
