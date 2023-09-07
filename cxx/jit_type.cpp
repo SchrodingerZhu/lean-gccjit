@@ -104,10 +104,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_union_type(
     auto union_name = lean_string_cstr(name);
     auto num_fields = static_cast<int>(array_len);
     gcc_jit_type * result = with_allocation<gcc_jit_field *>(array_len, [=](gcc_jit_field ** ptr) {
-        for (size_t i = 0; i < array_len; i++)
-        {
-            ptr[i] = unwrap_pointer<gcc_jit_field>(lean_to_array(fields)->m_data[i]);
-        }
+        unwrap_area(array_len, lean_array_cptr(fields), ptr);
         return gcc_jit_context_new_union_type(context, location, union_name, num_fields, ptr);
     });
     return map_notnull(result, wrap_pointer<gcc_jit_type>, "failed to create union");
@@ -134,10 +131,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_function_ptr_type(
     auto num_params = static_cast<int>(array_len);
     auto variadic = static_cast<int>(is_variadic);
     gcc_jit_type * result = with_allocation<gcc_jit_type *>(array_len, [=](gcc_jit_type ** ptr) {
-        for (size_t i = 0; i < array_len; i++)
-        {
-            ptr[i] = unwrap_pointer<gcc_jit_type>(lean_to_array(params)->m_data[i]);
-        }
+        unwrap_area(array_len, lean_array_cptr(params), ptr);
         return gcc_jit_context_new_function_ptr_type(context, location, return_type, num_params, ptr, variadic);
     });
     return map_notnull(result, wrap_pointer<gcc_jit_type>, "failed to create function ptr type");

@@ -34,10 +34,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_struct_type(
     auto struct_name = lean_string_cstr(name);
     auto num_fields = static_cast<int>(array_len);
     gcc_jit_struct * result = with_allocation<gcc_jit_field *>(array_len, [=](gcc_jit_field ** ptr) {
-        for (size_t i = 0; i < array_len; i++)
-        {
-            ptr[i] = unwrap_pointer<gcc_jit_field>(lean_to_array(fields)->m_data[i]);
-        }
+        unwrap_area(array_len, lean_array_cptr(fields), ptr);
         return gcc_jit_context_new_struct_type(context, location, struct_name, num_fields, ptr);
     });
     return map_notnull(result, wrap_pointer<gcc_jit_struct>, "failed to create struct");
@@ -63,10 +60,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_struct_set_fields(
     auto num_fields = static_cast<int>(array_len);
 
     auto res = with_allocation<gcc_jit_field *>(array_len, [=](gcc_jit_field ** ptr) {
-        for (size_t i = 0; i < array_len; i++)
-        {
-            ptr[i] = unwrap_pointer<gcc_jit_field>(lean_to_array(fields)->m_data[i]);
-        }
+        unwrap_area(array_len, lean_array_cptr(fields), ptr);
         gcc_jit_struct_set_fields(st_, location, num_fields, ptr);
         return lean_box(0);
     });

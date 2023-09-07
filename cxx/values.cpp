@@ -54,14 +54,8 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_struct_constructor(
         }
         result = with_allocation<gcc_jit_rvalue *>(values_len, [=](auto * vbuffer) {
             return with_allocation<gcc_jit_field *>(fields_len, [=](auto * fbuffer) {
-                for (size_t i = 0; i < fields_len; i++)
-                {
-                    fbuffer[i] = unwrap_pointer<gcc_jit_field>(lean_to_array(fields_)->m_data[i]);
-                }
-                for (size_t i = 0; i < values_len; i++)
-                {
-                    vbuffer[i] = unwrap_pointer<gcc_jit_rvalue>(lean_to_array(values)->m_data[i]);
-                }
+                unwrap_area(fields_len, lean_array_cptr(fields_), fbuffer);
+                unwrap_area(values_len, lean_array_cptr(values), vbuffer);
                 return gcc_jit_context_new_struct_constructor(context, location, type, fields_len, fbuffer, vbuffer);
             });
         });
@@ -69,10 +63,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_struct_constructor(
     else
     {
         result = with_allocation<gcc_jit_rvalue *>(values_len, [=](auto * vbuffer) {
-            for (size_t i = 0; i < values_len; i++)
-            {
-                vbuffer[i] = unwrap_pointer<gcc_jit_rvalue>(lean_to_array(values)->m_data[i]);
-            }
+            unwrap_area(values_len, lean_array_cptr(values), vbuffer);
             return gcc_jit_context_new_struct_constructor(context, location, type, num_values, nullptr, vbuffer);
         });
     }
@@ -117,10 +108,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_array_constructor(
     auto num_values = static_cast<int>(values_len);
 
     auto result = with_allocation<gcc_jit_rvalue *>(values_len, [=](auto * vbuffer) {
-        for (size_t i = 0; i < values_len; i++)
-        {
-            vbuffer[i] = unwrap_pointer<gcc_jit_rvalue>(lean_to_array(values)->m_data[i]);
-        }
+        unwrap_area(values_len, lean_array_cptr(values), vbuffer);
         return gcc_jit_context_new_array_constructor(context, location, type, num_values, vbuffer);
     });
     return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create array constructor");
@@ -339,10 +327,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_call(
     auto fn_ = unwrap_pointer<gcc_jit_function>(fn);
     auto num_args = static_cast<int>(lean_array_size(args));
     gcc_jit_rvalue * result = with_allocation<gcc_jit_rvalue *>(num_args, [=](gcc_jit_rvalue ** ptr) {
-        for (size_t i = 0; i < num_args; i++)
-        {
-            ptr[i] = unwrap_pointer<gcc_jit_rvalue>(lean_to_array(args)->m_data[i]);
-        }
+        unwrap_area(num_args, lean_array_cptr(args), ptr);
         return gcc_jit_context_new_call(context, location, fn_, num_args, ptr);
     });
     return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create call");
@@ -366,10 +351,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_call_through_ptr(
     auto fn_ptr_ = unwrap_pointer<gcc_jit_rvalue>(fn_ptr);
     auto num_args = static_cast<int>(lean_array_size(args));
     gcc_jit_rvalue * result = with_allocation<gcc_jit_rvalue *>(num_args, [=](gcc_jit_rvalue ** ptr) {
-        for (size_t i = 0; i < num_args; i++)
-        {
-            ptr[i] = unwrap_pointer<gcc_jit_rvalue>(lean_to_array(args)->m_data[i]);
-        }
+        unwrap_area(num_args, lean_array_cptr(args), ptr);
         return gcc_jit_context_new_call_through_ptr(context, location, fn_ptr_, num_args, ptr);
     });
     return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create call through ptr");

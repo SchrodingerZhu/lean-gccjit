@@ -27,6 +27,15 @@ static inline T * unwrap_pointer(b_lean_obj_arg obj)
     return reinterpret_cast<T *>(value & (~1));
 }
 
+template <typename T>
+static inline void unwrap_area(size_t n, lean_object * const * __restrict src, T ** __restrict dst)
+{
+    for (size_t i = 0; i < n; i++)
+    {
+        dst[i] = unwrap_pointer<T>(src[i]);
+    }
+}
+
 static inline lean_obj_res lean_option_string(const char * str)
 {
     if (str == nullptr)

@@ -26,10 +26,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_function(
     auto num_params = static_cast<int>(params_len);
     auto variadic = static_cast<int>(is_variadic);
     auto result = with_allocation<gcc_jit_param *>(params_len, [=](gcc_jit_param ** ptr) {
-        for (size_t i = 0; i < params_len; i++)
-        {
-            ptr[i] = unwrap_pointer<gcc_jit_param>(lean_to_array(params)->m_data[i]);
-        }
+        unwrap_area(params_len, lean_array_cptr(params), ptr);
         return gcc_jit_context_new_function(
             context,
             location,
