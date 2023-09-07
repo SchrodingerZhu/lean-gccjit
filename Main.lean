@@ -117,10 +117,12 @@ def valueCheck4 (ctx: Context) : IO Unit := do
 def blockCheck1 (ctx: Context) : IO Unit := do
   let location ← ctx.newLocation "test.c" 3 3
   let int ← ctx.getType TypeEnum.Int
-  let exit ← ctx.newFunction location FunctionKind.Imported int "exit" #[] false
+  let code ← ctx.newParam location int "code"
+  let exit ← ctx.newFunction location FunctionKind.Imported int "exit" #[code] false
   let main ← ctx.newFunction location FunctionKind.Exported int "main" #[] false
   let entry ← main.newBlock "entry"
-  let callExit ← ctx.newCall location exit #[]
+  let zero ← ctx.zero int
+  let callExit ← ctx.newCall location exit #[zero]
   entry.endWithReturn location callExit
   let obj ← callExit.asObject
   let debug ← obj.getDebugString
@@ -135,8 +137,6 @@ def main : IO Unit := do
   ctx.setBoolOption BoolOption.DumpEverything true
   ctx.setBoolAllowUnreachableBlocks true
   ctx.setBoolPrintErrorsToStderr true
-  ctx.compileToFile OutputKind.Executable "/tmp/test.o"
-  ctx.dumpToFile "/tmp/test.data" true
   typeCheck1 ctx
   typeCheck2 ctx
   typeCheck3 ctx
@@ -149,7 +149,13 @@ def main : IO Unit := do
   valueCheck3 ctx
   valueCheck4 ctx
   blockCheck1 ctx
+  ctx.compileToFile OutputKind.Executable "/tmp/test.o"
+  ctx.dumpToFile "/tmp/test.data" true
+  let res ← ctx.compile
+  let main ← res.getCode "main"
   IO.println s!"{(← ctx.getFirstError)}"
+  IO.println s!"main: {main}"
+  res.release
   ctx.release
   
 
