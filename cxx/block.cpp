@@ -145,5 +145,29 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_end_with_void_return(
     return lean_io_result_mk_ok(lean_box(0));
 }
 
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_end_with_switch(
+    b_lean_obj_arg block,       /* @& Block */
+    b_lean_obj_arg loc,         /* @& Option Location */
+    b_lean_obj_arg expr,        /* @& RValue */
+    b_lean_obj_arg default_blk, /* @& Block */
+    b_lean_obj_arg cases,       /* @& Array Case */
+    lean_object *               /* RealWorld */
+)
+{
+    auto cases_len = lean_array_size(cases);
+    LEAN_GCC_JIT_FAILED_IF(cases_len > INT_MAX);
+    auto * block_ = unwrap_pointer<gcc_jit_block>(block);
+    auto * location = unwrap_option<gcc_jit_location>(loc);
+    auto * expr_ = unwrap_pointer<gcc_jit_rvalue>(expr);
+    auto * default_blk_ = unwrap_pointer<gcc_jit_block>(default_blk);
+    auto num_cases = static_cast<int>(cases_len);
+    auto * result = with_allocation<gcc_jit_case *>(cases_len, [=](gcc_jit_case ** ptr) {
+        unwrap_area(cases_len, lean_array_cptr(cases), ptr);
+        gcc_jit_block_end_with_switch(block_, location, expr_, default_blk_, num_cases, ptr);
+        return lean_box(0);
+    });
+    return lean_io_result_mk_ok(result);
+}
+
 
 } // namespace lean_gccjit

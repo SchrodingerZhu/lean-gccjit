@@ -32,3 +32,7 @@ opaque Block.endWithReturn (block : @& Block) (loc: @& Option Location) (rval : 
 
 @[extern "lean_gcc_jit_block_end_with_void_return"]
 opaque Block.endWithVoidReturn (block : @& Block) (loc: @& Option Location) : IO PUnit
+
+@[extern "lean_gcc_jit_block_end_with_switch"]
+opaque Block.endWithSwitch 
+  (block : @& Block) (loc: @& Option Location) (expr : @& RValue) (defaultBlock : @& Block) (cases : @& Array Case) : IO PUnit
