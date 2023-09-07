@@ -30,6 +30,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_dynamic_buffer_release_inner(b_
 {
     auto * buf = unwrap_pointer<char *>(buffer);
     free(*buf);
+    *buf = nullptr;
     return lean_io_result_mk_ok(lean_box(0));
 }
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_dynamic_buffer_release(b_lean_obj_arg buffer, lean_object *)
@@ -40,6 +41,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_dynamic_buffer_release(b_lean_o
 #else
     free(buf);
 #endif
+    lean_dec(buffer);
     return lean_io_result_mk_ok(lean_box(0));
 }
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_dynamic_buffer_get_string(b_lean_obj_arg buffer, lean_object *)

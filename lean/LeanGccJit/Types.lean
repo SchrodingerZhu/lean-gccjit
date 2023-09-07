@@ -170,3 +170,18 @@ inductive Comparison :=
   | GT
   | GE
 
+opaque DynamicBufferPointed : NonemptyType
+def DynamicBuffer : Type := DynamicBufferPointed.type
+instance : Nonempty DynamicBuffer := DynamicBufferPointed.property
+
+@[extern "lean_gcc_jit_dynamic_buffer_acquire"]
+opaque DynamicBuffer.acquire : IO DynamicBuffer
+
+@[extern "lean_gcc_jit_dynamic_buffer_release"]
+opaque DynamicBuffer.release : DynamicBuffer → IO PUnit
+
+@[extern "lean_gcc_jit_dynamic_buffer_release_inner"]
+opaque DynamicBuffer.releaseInner : @& DynamicBuffer → IO PUnit
+
+@[extern "lean_gcc_jit_dynamic_buffer_get_string"]
+opaque DynamicBuffer.getString : @& DynamicBuffer → IO (Option String)
