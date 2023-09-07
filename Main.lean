@@ -152,10 +152,15 @@ def main : IO Unit := do
   ctx.compileToFile OutputKind.Executable "/tmp/test.o"
   ctx.dumpToFile "/tmp/test.data" true
   ctx.dumpReproducerToFile "/tmp/test.reproducer"
+  let buf ← DynamicBuffer.acquire
+  ctx.registerDumpBuffer "tree-vrp1" buf
   let res ← ctx.compile
   let main ← res.getCode "main"
   IO.println s!"{(← ctx.getFirstError)}"
   IO.println s!"main: {main}"
+  IO.println s!"tree-vrp1: {← buf.getString}"
+  buf.releaseInner
+  buf.release
   res.release
   ctx.release
   

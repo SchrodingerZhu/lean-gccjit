@@ -21,10 +21,11 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_dynamic_buffer_acquire(lean_obj
     auto slot = lean_get_slot_idx(size);
     buffer = reinterpret_cast<char **>(lean_alloc_small(size, slot));
 #else
+    lean_inc_heartbeat();
     buffer = reinterpret_cast<char **>(malloc(sizeof(char *)));
 #endif
     *buffer = nullptr;
-    return wrap_pointer(buffer);
+    return lean_io_result_mk_ok(wrap_pointer(buffer));
 }
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_dynamic_buffer_release_inner(b_lean_obj_arg buffer, lean_object *)
 {
@@ -47,6 +48,6 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_dynamic_buffer_release(b_lean_o
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_dynamic_buffer_get_string(b_lean_obj_arg buffer, lean_object *)
 {
     auto * buf = unwrap_pointer<char *>(buffer);
-    return lean_option_string(*buf);
+    return lean_io_result_mk_ok(lean_option_string(*buf));
 }
 } // namespace lean_gccjit
