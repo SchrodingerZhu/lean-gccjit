@@ -86,3 +86,49 @@ opaque Context.newCast
 @[extern "lean_gcc_jit_context_new_bitcast"]
 opaque Context.newBitCast 
   (ctx : @& Context) (loc : @& Location)  (val : @& RValue) (ty : @& JitType) : IO RValue
+
+@[extern "lean_gcc_jit_lvalue_set_alignment"]
+opaque LValue.setAlignment (lval : @& LValue) (align : @& Nat) : IO PUnit
+
+@[extern "lean_gcc_jit_lvalue_get_alignment"]
+opaque LValue.getAlignment (lval : @& LValue) : IO Nat
+
+@[extern "lean_gcc_jit_context_new_array_access"]
+opaque Context.newArrayAccess 
+  (ctx : @& Context) (loc : @& Location) (ptr : @& RValue) (index : @& RValue) : IO LValue
+
+@[extern "lean_gcc_jit_lvalue_access_field"]
+opaque LValue.accessField 
+  (lval : @& LValue) (loc : @& Location) (field : @& Field) : IO LValue
+
+@[extern "lean_gcc_jit_rvalue_access_field"]
+opaque RValue.accessField 
+  (rval : @& RValue) (loc : @& Location) (field : @& Field) : IO RValue
+
+@[extern "lean_gcc_jit_rvalue_dereference_field"]
+opaque RValue.dereferenceField 
+  (rval : @& RValue) (loc : @& Location) (field : @& Field) : IO LValue
+
+@[extern "lean_gcc_jit_rvalue_dereference"]
+opaque RValue.dereference
+  (rval : @& RValue) (loc : @& Location) : IO LValue
+
+@[extern "lean_gcc_jit_lvalue_get_address"]
+opaque LValue.getAddress
+  (lval : @& RValue) (loc : @& Location) : IO RValue
+
+@[extern "lean_gcc_jit_lvalue_set_tls_model"]
+opaque LValue.setTlsModel
+  (lval : @& RValue) (tlsModel: @& TlsModel) : IO PUnit
+
+@[extern "lean_gcc_jit_lvalue_set_link_section"]
+opaque LValue.setLinkSection
+  (lval : @& RValue) (linkSection: @& String) : IO PUnit
+
+@[extern "lean_gcc_jit_lvalue_set_register_name"]
+opaque LValue.setRegisterName
+  (lval : @& RValue) (regName: @& String) : IO PUnit
+
+@[extern "lean_gcc_jit_function_new_local"]
+opaque Func.newLocal
+  (func : @& Func) (loc : @& Location) (ty : @& JitType) (name : @& String) : IO LValue

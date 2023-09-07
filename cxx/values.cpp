@@ -366,4 +366,162 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_bitcast(
     return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create bitcast");
 }
 
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_lvalue_set_alignment(
+    b_lean_obj_arg lv,    /* @& LValue */
+    b_lean_obj_arg align, /* @& Nat */
+    lean_object *         /* RealWorld */
+)
+{
+    LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(align));
+    auto lvalue = unwrap_pointer<gcc_jit_lvalue>(lv);
+    auto align_ = lean_unbox(align);
+    LEAN_GCC_JIT_FAILED_IF(align_ > UINT_MAX);
+    gcc_jit_lvalue_set_alignment(lvalue, static_cast<unsigned int>(align_));
+    return lean_io_result_mk_ok(lean_box(0));
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_lvalue_get_alignment(
+    b_lean_obj_arg lv, /* @& LValue */
+    lean_object *      /* RealWorld */
+)
+{
+    auto lvalue = unwrap_pointer<gcc_jit_lvalue>(lv);
+    auto result = gcc_jit_lvalue_get_alignment(lvalue);
+    return lean_io_result_mk_ok(lean_usize_to_nat(static_cast<size_t>(result)));
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_array_access(
+    b_lean_obj_arg ctx, /* @& Context */
+    b_lean_obj_arg loc, /* @& Location */
+    b_lean_obj_arg ptr, /* @& RValue */
+    b_lean_obj_arg idx, /* @& RValue */
+    lean_object *       /* RealWorld */
+)
+{
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto ptr_ = unwrap_pointer<gcc_jit_rvalue>(ptr);
+    auto idx_ = unwrap_pointer<gcc_jit_rvalue>(idx);
+    auto result = gcc_jit_context_new_array_access(context, location, ptr_, idx_);
+    return map_notnull(result, wrap_pointer<gcc_jit_lvalue>, "failed to create array access");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_lvalue_access_field(
+    b_lean_obj_arg lv,    /* @& LValue */
+    b_lean_obj_arg loc,   /* @& Location */
+    b_lean_obj_arg field, /* @& Field */
+    lean_object *         /* RealWorld */
+)
+{
+    auto lvalue = unwrap_pointer<gcc_jit_lvalue>(lv);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto field_ = unwrap_pointer<gcc_jit_field>(field);
+    auto result = gcc_jit_lvalue_access_field(lvalue, location, field_);
+    return map_notnull(result, wrap_pointer<gcc_jit_lvalue>, "failed to access field");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_rvalue_access_field(
+    b_lean_obj_arg rv,    /* @& RValue */
+    b_lean_obj_arg loc,   /* @& Location */
+    b_lean_obj_arg field, /* @& Field */
+    lean_object *         /* RealWorld */
+)
+{
+    auto rvalue = unwrap_pointer<gcc_jit_rvalue>(rv);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto field_ = unwrap_pointer<gcc_jit_field>(field);
+    auto result = gcc_jit_rvalue_access_field(rvalue, location, field_);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to access field");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_rvalue_dereference_field(
+    b_lean_obj_arg rv,    /* @& RValue */
+    b_lean_obj_arg loc,   /* @& Location */
+    b_lean_obj_arg field, /* @& Field */
+    lean_object *         /* RealWorld */
+)
+{
+    auto rvalue = unwrap_pointer<gcc_jit_rvalue>(rv);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto field_ = unwrap_pointer<gcc_jit_field>(field);
+    auto result = gcc_jit_rvalue_dereference_field(rvalue, location, field_);
+    return map_notnull(result, wrap_pointer<gcc_jit_lvalue>, "failed to dereference field");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_rvalue_dereference(
+    b_lean_obj_arg rv,  /* @& RValue */
+    b_lean_obj_arg loc, /* @& Location */
+    lean_object *       /* RealWorld */
+)
+{
+    auto rvalue = unwrap_pointer<gcc_jit_rvalue>(rv);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto result = gcc_jit_rvalue_dereference(rvalue, location);
+    return map_notnull(result, wrap_pointer<gcc_jit_lvalue>, "failed to dereference");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_lvalue_get_address(
+    b_lean_obj_arg lv,  /* @& LValue */
+    b_lean_obj_arg loc, /* @& Location */
+    lean_object *       /* RealWorld */
+)
+{
+    auto lvalue = unwrap_pointer<gcc_jit_lvalue>(lv);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto result = gcc_jit_lvalue_get_address(lvalue, location);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to get address");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_lvalue_set_tls_model(
+    b_lean_obj_arg lv, /* @& LValue */
+    uint8_t model,     /* @& TlsModel */
+    lean_object *      /* RealWorld */
+)
+{
+    auto lvalue = unwrap_pointer<gcc_jit_lvalue>(lv);
+    auto model_ = static_cast<gcc_jit_tls_model>(model);
+    gcc_jit_lvalue_set_tls_model(lvalue, model_);
+    return lean_io_result_mk_ok(lean_box(0));
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_lvalue_set_link_section(
+    b_lean_obj_arg lv,      /* @& LValue */
+    b_lean_obj_arg section, /* @& String */
+    lean_object *           /* RealWorld */
+)
+{
+    auto lvalue = unwrap_pointer<gcc_jit_lvalue>(lv);
+    auto section_ = lean_string_cstr(section);
+    gcc_jit_lvalue_set_link_section(lvalue, section_);
+    return lean_io_result_mk_ok(lean_box(0));
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_lvalue_set_register_name(
+    b_lean_obj_arg lv,  /* @& LValue */
+    b_lean_obj_arg reg, /* @& String */
+    lean_object *       /* RealWorld */
+)
+{
+    auto lvalue = unwrap_pointer<gcc_jit_lvalue>(lv);
+    auto reg_ = lean_string_cstr(reg);
+    gcc_jit_lvalue_set_register_name(lvalue, reg_);
+    return lean_io_result_mk_ok(lean_box(0));
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_function_new_local(
+    b_lean_obj_arg fn,   /* @& Func */
+    b_lean_obj_arg loc,  /* @& Location */
+    b_lean_obj_arg ty,   /* @& JitType */
+    b_lean_obj_arg name, /* @& String */
+    lean_object *        /* RealWorld */
+)
+{
+    auto function = unwrap_pointer<gcc_jit_function>(fn);
+    auto location = unwrap_pointer<gcc_jit_location>(loc);
+    auto type = unwrap_pointer<gcc_jit_type>(ty);
+    auto name_ = lean_string_cstr(name);
+    auto result = gcc_jit_function_new_local(function, location, type, name_);
+    return map_notnull(result, wrap_pointer<gcc_jit_lvalue>, "failed to create local");
+}
+
 } // namespace lean_gccjit

@@ -130,7 +130,7 @@ inductive FunctionKind :=
   | Imported
   | AlwaysInline
 
-inductive TLSModel := 
+inductive TlsModel := 
   | None
   | GeneralDynamic
   | LocalDynamic

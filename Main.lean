@@ -106,6 +106,26 @@ def valueCheck3 (ctx: Context) : IO Unit := do
   let debug ← obj.getDebugString
   IO.println s!"one + -one: {debug}"
 
+def valueCheck4 (ctx: Context) : IO Unit := do
+  let location ← ctx.newLocation "test.c" 2 2
+  let long ← ctx.getType TypeEnum.Long
+  let g ← ctx.newGlobal location GlobalKind.Internal long "g"
+  g.setAlignment 16
+  let a ← g.getAlignment
+  IO.println s!"g alignment: {a}"
+
+def blockCheck1 (ctx: Context) : IO Unit := do
+  let location ← ctx.newLocation "test.c" 3 3
+  let int ← ctx.getType TypeEnum.Int
+  let exit ← ctx.newFunction location FunctionKind.Imported int "exit" #[] false
+  let main ← ctx.newFunction location FunctionKind.Exported int "main" #[] false
+  let entry ← main.newBlock "entry"
+  let callExit ← ctx.newCall location exit #[]
+  entry.endWithReturn location callExit
+  let obj ← callExit.asObject
+  let debug ← obj.getDebugString
+  IO.println s!"exit call: {debug}"
+
 def main : IO Unit := do
   IO.println s!"major version: {getMajorVersion ()}"
   IO.println s!"minor version: {getMinorVersion ()}"
@@ -115,7 +135,7 @@ def main : IO Unit := do
   ctx.setBoolOption BoolOption.DumpEverything true
   ctx.setBoolAllowUnreachableBlocks true
   ctx.setBoolPrintErrorsToStderr true
-  ctx.compileToFile OutputKind.ObjectFile "/tmp/test.o"
+  ctx.compileToFile OutputKind.Executable "/tmp/test.o"
   ctx.dumpToFile "/tmp/test.data" true
   typeCheck1 ctx
   typeCheck2 ctx
@@ -127,6 +147,8 @@ def main : IO Unit := do
   valueCheck1 ctx
   valueCheck2 ctx
   valueCheck3 ctx
+  valueCheck4 ctx
+  blockCheck1 ctx
   IO.println s!"{(← ctx.getFirstError)}"
   ctx.release
   
