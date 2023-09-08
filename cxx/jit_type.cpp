@@ -121,4 +121,36 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_function_ptr_type(
     return map_notnull(result, wrap_pointer<gcc_jit_type>, "failed to create function ptr type");
 }
 
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_type_get_aligned(
+    b_lean_obj_arg type,  /* @& Type */
+    b_lean_obj_arg align, /* @& Nat */
+    lean_object *         /* w */
+)
+{
+    LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(align));
+    auto ty = unwrap_pointer<gcc_jit_type>(type);
+    auto alignment = lean_unbox(align);
+    auto result = gcc_jit_type_get_aligned(ty, alignment);
+    return map_notnull(result, wrap_pointer<gcc_jit_type>, "failed to aligned type");
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_type_get_vector(
+    b_lean_obj_arg type, /* @& Type */
+    b_lean_obj_arg len,  /* @& Nat */
+    lean_object *        /* w */
+)
+{
+    LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(len));
+    auto ty = unwrap_pointer<gcc_jit_type>(type);
+    auto length = lean_unbox(len);
+    auto result = gcc_jit_type_get_vector(ty, length);
+    return map_notnull(result, wrap_pointer<gcc_jit_type>, "failed to get vector type");
+}
+
+LEAN_GCC_JIT_DYNCAST(type, array);
+LEAN_GCC_JIT_QUERY_SCALAR(type, is, bool)
+LEAN_GCC_JIT_DYNCAST(type, function_ptr_type);
+LEAN_GCC_JIT_QUERY_OBJECT(function_type, get, return_type);
+LEAN_GCC_JIT_QUERY_SCALAR(function_type, get, param_count);
+
 } // namespace lean_gccjit

@@ -74,4 +74,20 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_function_dump_to_dot(
     gcc_jit_function_dump_to_dot(fn_, path_);
     return lean_io_result_mk_ok(lean_box(0));
 }
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_function_get_address(
+    b_lean_obj_arg fn,  /* @& Function */
+    b_lean_obj_arg loc, /* @& Option Location */
+    lean_object *       /* w */
+)
+{
+    auto * fn_ = unwrap_pointer<gcc_jit_function>(fn);
+    auto * location = unwrap_option<gcc_jit_location>(loc);
+    auto * result = gcc_jit_function_get_address(fn_, location);
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to get address");
+}
+
+LEAN_GCC_JIT_QUERY_OBJECT(function, get, return_type);
+LEAN_GCC_JIT_QUERY_SCALAR(function, get, param_count)
+
+
 } // namespace lean_gccjit

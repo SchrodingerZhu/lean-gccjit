@@ -524,4 +524,36 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_function_new_local(
     return map_notnull(result, wrap_pointer<gcc_jit_lvalue>, "failed to create local");
 }
 
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_rvalue_set_bool_require_tail_call(
+    b_lean_obj_arg rv, /* @& RValue */
+    uint8_t val,       /* Bool */
+    lean_object *      /* RealWorld */
+)
+{
+    auto rvalue = unwrap_pointer<gcc_jit_rvalue>(rv);
+    gcc_jit_rvalue_set_bool_require_tail_call(rvalue, static_cast<int>(val));
+    return lean_io_result_mk_ok(lean_box(0));
+}
+
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_rvalue_from_vector(
+    b_lean_obj_arg ctx,   /* @& Context */
+    b_lean_obj_arg loc,   /* @& Option Location */
+    b_lean_obj_arg ty,    /* @& JitType */
+    b_lean_obj_arg elems, /* @& Array RValue */
+    lean_object *         /* RealWorld */
+)
+{
+    auto num_elems = lean_array_size(elems);
+    LEAN_GCC_JIT_FAILED_IF(num_elems > INT_MAX);
+    auto context = unwrap_pointer<gcc_jit_context>(ctx);
+    auto location = unwrap_option<gcc_jit_location>(loc);
+    auto type = unwrap_pointer<gcc_jit_type>(ty);
+    auto num_elems_ = static_cast<int>(num_elems);
+    gcc_jit_rvalue * result = with_allocation<gcc_jit_rvalue *>(num_elems_, [=](gcc_jit_rvalue ** ptr) {
+        unwrap_area(num_elems_, lean_array_cptr(elems), ptr);
+        return gcc_jit_context_new_rvalue_from_vector(context, location, type, num_elems_, ptr);
+    });
+    return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create rvalue from vector");
+}
+
 } // namespace lean_gccjit

@@ -36,3 +36,10 @@ opaque Block.endWithVoidReturn (block : @& Block) (loc: @& Option Location) : IO
 @[extern "lean_gcc_jit_block_end_with_switch"]
 opaque Block.endWithSwitch 
   (block : @& Block) (loc: @& Option Location) (expr : @& RValue) (defaultBlock : @& Block) (cases : @& Array Case) : IO PUnit
+
+@[extern "lean_gcc_jit_block_end_with_extended_asm_goto"]
+opaque Block.endWithExtendedAsmGoto 
+  (block : @& Block) 
+  (loc: @& Option Location) 
+  (gotoBlocks : @& Array Block) 
+  (fallthrough : @& Block) : IO PUnit

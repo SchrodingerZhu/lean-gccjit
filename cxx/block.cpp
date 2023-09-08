@@ -169,5 +169,29 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_end_with_switch(
     return lean_io_result_mk_ok(result);
 }
 
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_end_with_extended_asm_goto(
+    b_lean_obj_arg block,       /* @& Block */
+    b_lean_obj_arg loc,         /* @& Option Location */
+    b_lean_obj_arg asm_str,     /* @& String */
+    b_lean_obj_arg blocks,      /* @& Array Block */
+    b_lean_obj_arg fallthrough, /* @& Block */
+    lean_object *               /* RealWorld */
+)
+{
+    size_t blocks_len = lean_array_size(blocks);
+    LEAN_GCC_JIT_FAILED_IF(blocks_len > INT_MAX);
+    auto * block_ = unwrap_pointer<gcc_jit_block>(block);
+    auto * location = unwrap_option<gcc_jit_location>(loc);
+    auto asm_str_ = lean_string_cstr(asm_str);
+    auto num_blocks = static_cast<int>(blocks_len);
+    auto fallthrough_ = unwrap_pointer<gcc_jit_block>(fallthrough);
+    auto * result = with_allocation<gcc_jit_block *>(blocks_len, [=](gcc_jit_block ** ptr) {
+        unwrap_area(blocks_len, lean_array_cptr(blocks), ptr);
+        gcc_jit_block_end_with_extended_asm_goto(block_, location, asm_str_, num_blocks, ptr, fallthrough_);
+        return lean_box(0);
+    });
+    return lean_io_result_mk_ok(result);
+}
+
 
 } // namespace lean_gccjit

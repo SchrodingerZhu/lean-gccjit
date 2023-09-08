@@ -167,5 +167,38 @@ static inline auto with_allocation(size_t n, F f)
             return lean_io_result_mk_error(error);                                         \
         }                                                                                  \
     } while (false)
-
+#define LEAN_GCC_JIT_QUERY_OBJECT(SRC, WORD, INFO)                                       \
+    extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_##SRC##_##WORD##_##INFO(            \
+        b_lean_obj_arg src, /* @& SRC */                                                 \
+        lean_object *       /* w */                                                      \
+    )                                                                                    \
+    {                                                                                    \
+        auto * src_ = unwrap_pointer<gcc_jit_##SRC>(src);                                \
+        auto result = gcc_jit_##SRC##_##WORD##_##INFO(src_);                             \
+        return map_condition(                                                            \
+            result,                                                                      \
+            [](auto * x) { return x != nullptr; },                                       \
+            wrap_pointer<::std::remove_pointer_t<decltype(result)>>,                     \
+            "failed to query " LEAN_GCC_JIT_STRINGIFY(gcc_jit_##SRC##_##WORD##_##INFO)); \
+    }
+#define LEAN_GCC_JIT_QUERY_SCALAR(SRC, WORD, INFO)                            \
+    extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_##SRC##_##WORD##_##INFO( \
+        b_lean_obj_arg src, /* @& SRC */                                      \
+        lean_object *       /* w */                                           \
+    )                                                                         \
+    {                                                                         \
+        auto * src_ = unwrap_pointer<gcc_jit_##SRC>(src);                     \
+        auto result = gcc_jit_##SRC##_##WORD##_##INFO(src_);                  \
+        return lean_box(result);                                              \
+    }
+#define LEAN_GCC_JIT_DYNCAST(SRC, TARGET)                                      \
+    extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_##SRC##_dyncast_##TARGET( \
+        b_lean_obj_arg src, /* @& SRC */                                       \
+        lean_object *       /* w */                                            \
+    )                                                                          \
+    {                                                                          \
+        auto * src_ = unwrap_pointer<gcc_jit_##SRC>(src);                      \
+        auto result = gcc_jit_##SRC##_dyncast_##TARGET(src_);                  \
+        return lean_io_result_mk_ok(wrap_option(result));                      \
+    }
 } // namespace lean_gccjit

@@ -36,3 +36,9 @@ opaque Context.newUnionType
 @[extern "lean_gcc_jit_context_new_function_ptr_type"]
 opaque Context.newFunctionPtrType 
   (ctx : @& Context) (location : @& Option Location) (returnType : @& JitType) (params: @& Array JitType) (isVarArg : @& Bool) : IO JitType
+
+@[extern "lean_gcc_jit_type_get_aligned"]
+opaque JitType.getAligned (ty : @& JitType) (alignment : @& Nat) : IO JitType
+
+@[extern "lean_gcc_jit_type_get_vector"]
+opaque JitType.getVector (ty : @& JitType) (length : @& Nat) : IO JitType

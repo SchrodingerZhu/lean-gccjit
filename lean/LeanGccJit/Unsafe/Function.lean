@@ -14,3 +14,6 @@ opaque Func.getParam (f : @& Func) (i : @& Nat) : IO Param
 
 @[extern "lean_gcc_jit_function_dump_to_dot"]
 opaque Func.dumpToDot (f : @& Func) (path : @& String) : IO PUnit
+
+@[extern "lean_gcc_jit_function_get_address"]
+opaque Func.getAddress (f : @& Func) (loc: @& Option Location) : IO RValue

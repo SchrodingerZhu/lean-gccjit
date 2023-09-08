@@ -46,6 +46,8 @@ target case.o pkg : FilePath := objectFile pkg "case"
 
 target timer.o pkg : FilePath := objectFile pkg "timer"
 
+target asm.o pkg : FilePath := objectFile pkg "asm"
+
 extern_lib liblean_gccjit.a pkg := do
   let name := nameToStaticLib "lean_gccjit"
   let objectO ← fetch <| pkg.target ``object.o
@@ -62,6 +64,7 @@ extern_lib liblean_gccjit.a pkg := do
   let valuesO ← fetch <| pkg.target ``values.o
   let caseO ← fetch <| pkg.target ``case.o
   let timerO ← fetch <| pkg.target ``timer.o
+  let asmO ← fetch <| pkg.target ``asm.o
   buildStaticLib (pkg.nativeLibDir / name) #[
     objectO, 
     contextO, 
@@ -76,7 +79,8 @@ extern_lib liblean_gccjit.a pkg := do
     blockO,
     valuesO,
     caseO,
-    timerO
+    timerO,
+    asmO
   ]
 
 @[default_target]

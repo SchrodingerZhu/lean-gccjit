@@ -132,3 +132,11 @@ opaque LValue.setRegisterName
 @[extern "lean_gcc_jit_function_new_local"]
 opaque Func.newLocal
   (func : @& Func) (loc : @& Option Location) (ty : @& JitType) (name : @& String) : IO LValue
+
+@[extern "lean_gcc_jit_rvalue_set_bool_require_tail_call"]
+opaque RValue.setBoolRequireTailCall
+  (rval : @& RValue) (val : @& Bool) : IO PUnit
+
+@[extern "lean_gcc_jit_context_new_rvalue_from_vector"]
+opaque Context.newRValueFromVector
+  (ctx : @& Context) (loc : @& Option Location) (ty : @& JitType) (elems : @& Array RValue) : IO RValue
