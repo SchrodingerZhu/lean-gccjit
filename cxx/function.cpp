@@ -86,8 +86,8 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_function_get_address(
     return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to get address");
 }
 
-LEAN_GCC_JIT_QUERY_OBJECT(function, get, return_type);
-LEAN_GCC_JIT_QUERY_SCALAR(function, get, param_count)
+LEAN_GCC_JIT_QUERY_OBJECT(function, _get, return_type);
+LEAN_GCC_JIT_QUERY_SCALAR(function, _get, param_count)
 
 
 } // namespace lean_gccjit

@@ -147,10 +147,30 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_type_get_vector(
     return map_notnull(result, wrap_pointer<gcc_jit_type>, "failed to get vector type");
 }
 
-LEAN_GCC_JIT_DYNCAST(type, array);
-LEAN_GCC_JIT_QUERY_SCALAR(type, is, bool)
-LEAN_GCC_JIT_DYNCAST(type, function_ptr_type);
-LEAN_GCC_JIT_QUERY_OBJECT(function_type, get, return_type);
-LEAN_GCC_JIT_QUERY_SCALAR(function_type, get, param_count);
+LEAN_GCC_JIT_QUERY_OPTION(type, _dyncast, array);
+LEAN_GCC_JIT_QUERY_SCALAR(type, _is, bool)
+LEAN_GCC_JIT_QUERY_OPTION(type, _dyncast, function_ptr_type);
+LEAN_GCC_JIT_QUERY_OBJECT(function_type, _get, return_type);
+LEAN_GCC_JIT_QUERY_SCALAR(function_type, _get, param_count);
 
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_function_type_get_param_type(
+    b_lean_obj_arg fun, /* @& FunctionType */
+    b_lean_obj_arg idx, /* @& Nat */
+    lean_object *       /* w */
+)
+{
+    LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(idx));
+    auto fun_ = unwrap_pointer<gcc_jit_function_type>(fun);
+    auto idx_ = lean_unbox(idx);
+    auto result = gcc_jit_function_type_get_param_type(fun_, idx_);
+    return map_notnull(result, wrap_pointer<gcc_jit_type>, "failed to query gcc_jit_function_type_get_param_type");
+}
+
+LEAN_GCC_JIT_QUERY_SCALAR(type, _is, integral);
+LEAN_GCC_JIT_QUERY_OPTION(type, _is, pointer);
+LEAN_GCC_JIT_QUERY_OPTION(type, _dyncast, vector);
+LEAN_GCC_JIT_QUERY_OPTION(type, _is, struct);
+LEAN_GCC_JIT_QUERY_SCALAR(vector_type, _get, num_units);
+LEAN_GCC_JIT_QUERY_OBJECT(vector_type, _get, element_type)
+LEAN_GCC_JIT_QUERY_OBJECT(type, , unqualified);
 } // namespace lean_gccjit
