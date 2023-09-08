@@ -4,6 +4,97 @@ import LeanGccJit.Version
 import LeanGccJit.Types
 import LeanGccJit.Unsafe
 
+inductive BFItem :=
+  | Right
+  | Left
+  | Inc
+  | Dec
+  | PutChar
+  | GetChar
+  | Loop (body : Array BFItem)
+deriving Repr
+
+partial def compileBF (ctx: Context) (putchar: Func) (getchar: Func) (main: Func)
+  (block: Block) (gBuffer : LValue) (cursor : LValue) (one: RValue) (prog: Array BFItem) 
+  : IO Block := do
+  let mut block := block
+  for i in prog do
+    match i with
+    | BFItem.Right => 
+      block.addAssignmentOp none cursor BinaryOp.Plus one
+    | BFItem.Left =>
+      block.addAssignmentOp none cursor BinaryOp.Minus one
+    | BFItem.Inc =>
+      let access ← ctx.newArrayAccess none (← gBuffer.asRValue) (← cursor.asRValue)
+      block.addAssignmentOp none access BinaryOp.Plus one
+    | BFItem.Dec =>
+      let access ← ctx.newArrayAccess none (← gBuffer.asRValue) (← cursor.asRValue)
+      block.addAssignmentOp none access BinaryOp.Minus one
+    | BFItem.PutChar =>
+      let access ← ctx.newArrayAccess none (← gBuffer.asRValue) (← cursor.asRValue)
+      let ch ← ctx.newCall none putchar #[(← access.asRValue)] 
+      block.addEval none ch
+    | BFItem.GetChar =>
+      let access ← ctx.newArrayAccess none (← gBuffer.asRValue) (← cursor.asRValue)
+      let ch ← ctx.newCall none putchar #[(← access.asRValue)] 
+      block.addAssignment none access ch
+    | BFItem.Loop body =>
+      let loop ← main.newBlock none
+      let after ← main.newBlock none
+      let access ← ctx.newArrayAccess none (← gBuffer.asRValue) (← cursor.asRValue)
+      let access ← ctx.newCast none (← access.asRValue) (← ctx.getType TypeEnum.Bool)
+      block.endWithConditional none access loop after
+      let blk ← compileBF ctx putchar getchar main loop gBuffer cursor one body
+      blk.endWithConditional none access loop after
+      block := after
+  pure block
+
+def splitAtEnd  (prog: List Char) : (List Char × List Char) :=
+  let rec loop (level: Nat) (prog: List Char) (acc: List Char) : (List Char × List Char) :=
+    match prog, level with
+    | '[' :: rest, level => loop (level + 1) rest ('[' :: acc)
+    | ']' :: rest, 0 => (acc.reverse, rest)
+    | ']' :: rest, level => loop (level - 1) rest (']' :: acc)
+    | c :: rest, level => loop level rest (c :: acc)
+    | _ , _ => panic! "unterminated loop"
+  loop 0 prog []
+
+partial def parseBFProg (prog: List Char) (compiled: Array BFItem) : Array BFItem := 
+  match prog with
+  | '>' :: rest => parseBFProg rest (compiled.push BFItem.Right)
+  | '<' :: rest => parseBFProg rest (compiled.push BFItem.Left)
+  | '+' :: rest => parseBFProg rest (compiled.push BFItem.Inc)
+  | '-' :: rest => parseBFProg rest (compiled.push BFItem.Dec)
+  | '.' :: rest => parseBFProg rest (compiled.push BFItem.PutChar)
+  | ',' :: rest => parseBFProg rest (compiled.push BFItem.GetChar)
+  | '[' :: rest => 
+    let (body, tail) := splitAtEnd rest
+    let bodyCompiled := parseBFProg body #[]
+    parseBFProg tail (compiled.push (BFItem.Loop bodyCompiled))
+  | _ => compiled
+
+partial def compileBFToFile (path: System.FilePath) (prog: String) : IO Unit := do
+  let ctx ← Context.acquire
+  ctx.setIntOption IntOption.OptimizationLevel 3
+  let int ← ctx.getType TypeEnum.Int
+  let chParam ← ctx.newParam none int "ch"
+  let putchar ← ctx.newFunction none FunctionKind.Imported int "putchar" #[chParam] false
+  let getchar ← ctx.newFunction none FunctionKind.Imported int "getchar" #[] false
+  let main ← ctx.newFunction none FunctionKind.Exported int "main" #[] false
+  let buffer ← ctx.newArrayType none int 1024
+  let gBuffer ← ctx.newGlobal none GlobalKind.Internal buffer "buffer"
+  let cursor ← main.newLocal none int "cursor"
+  let mut block ← main.newBlock "entry"
+  let one ← ctx.one int
+  block.addAssignment none cursor (← ctx.newRvalueFromUInt32 int 512)
+  let last ← compileBF ctx putchar getchar main block gBuffer cursor one (parseBFProg prog.toList #[])
+  let zero ← ctx.zero int
+  last.endWithReturn none zero
+  ctx.compileToFile OutputKind.Executable path.toString
+  IO.println s!"{(← ctx.getFirstError)}"
+  ctx.release
+
+
 def typeCheck1 (ctx : Context) : IO Unit := do
   let ty ← ctx.getType TypeEnum.ComplexLongDouble
   let obj ← ty.asObject
@@ -142,6 +233,7 @@ def main : IO Unit := do
   IO.println s!"major version: {getMajorVersion ()}"
   IO.println s!"minor version: {getMinorVersion ()}"
   IO.println s!"patch version: {getPatchlevel ()}"
+  compileBFToFile "/tmp/bf" "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++."
   let ctx ← Context.acquire
   ctx.setIntOption IntOption.OptimizationLevel 3
   ctx.setBoolOption BoolOption.DumpEverything true
