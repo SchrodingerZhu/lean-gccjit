@@ -11,7 +11,7 @@ lean_lib «LeanGccJit» {
 }
 
 def flags [MonadLakeEnv m] [Monad m] : m (Array String) := do
-  pure #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=c++17", "-O3", "-fvisibility=hidden", "-ffreestanding"]
+  pure #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=gnu++17", "-O3", "-fvisibility=hidden", "-ffreestanding"]
 
 def objectFile (pkg : Package) (name : String) : SchedulerM (BuildJob FilePath) := do
   let oFile := pkg.buildDir / "cxx" / (name ++ ".o")

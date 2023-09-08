@@ -158,14 +158,27 @@ static inline auto with_allocation(size_t n, F f)
             "invalid cast from " LEAN_GCC_JIT_STRINGIFY(A) " to " LEAN_GCC_JIT_STRINGIFY(B)); \
     }
 
-#define LEAN_GCC_JIT_FAILED_IF(COND)                                                       \
-    do                                                                                     \
-    {                                                                                      \
-        if (LEAN_UNLIKELY(COND))                                                           \
-        {                                                                                  \
-            auto error = lean_mk_io_error_invalid_argument(EINVAL, lean_mk_string(#COND)); \
-            return lean_io_result_mk_error(error);                                         \
-        }                                                                                  \
+#if __has_attribute(cold)
+#define LEAN_GCC_JIT_COLD __attribute__((cold))
+#else
+#define LEAN_GCC_JIT_COLD
+#endif
+
+#define LEAN_GCC_JIT_FAILED_IF(COND)                                                                             \
+    do                                                                                                           \
+    {                                                                                                            \
+        if (LEAN_UNLIKELY(COND))                                                                                 \
+        {                                                                                                        \
+            return [](const char * fname) LEAN_GCC_JIT_COLD {                                                    \
+                auto function_name = lean_mk_string(fname);                                                      \
+                auto dbg_info                                                                                    \
+                    = lean_mk_string(" (" __FILE__ ":" LEAN_GCC_JIT_STRINGIFY(__LINE__) ")"                      \
+                                                                                        " failed with: " #COND); \
+                auto msg = lean_string_append(function_name, dbg_info);                                          \
+                auto error = lean_mk_io_error_invalid_argument(EINVAL, msg);                                     \
+                return lean_io_result_mk_error(error);                                                           \
+            }(__func__);                                                                                         \
+        }                                                                                                        \
     } while (false)
 #define LEAN_GCC_JIT_QUERY_OBJECT(SRC, WORD, INFO)                                    \
     extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_##SRC##WORD##_##INFO(            \
