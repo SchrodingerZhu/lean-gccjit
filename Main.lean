@@ -128,6 +128,16 @@ def blockCheck1 (ctx: Context) : IO Unit := do
   let debug ← obj.getDebugString
   IO.println s!"exit call: {debug}"
 
+def timerTest (ctx: Context) : IO Unit := do
+  let timer ← ctx.getTimer
+  match timer with
+  | none => IO.println "no timer"
+  | some timer => do
+    timer.pop "test"
+    IO.FS.withFile "/tmp/test.timer" IO.FS.Mode.write fun h => do
+      timer.print h
+
+
 def main : IO Unit := do
   IO.println s!"major version: {getMajorVersion ()}"
   IO.println s!"minor version: {getMinorVersion ()}"
@@ -137,6 +147,9 @@ def main : IO Unit := do
   ctx.setBoolOption BoolOption.DumpEverything true
   ctx.setBoolAllowUnreachableBlocks true
   ctx.setBoolPrintErrorsToStderr true
+  let timer ← Timer.new
+  ctx.setTimer timer
+  timer.push "test"
   typeCheck1 ctx
   typeCheck2 ctx
   typeCheck3 ctx
@@ -159,6 +172,8 @@ def main : IO Unit := do
   IO.println s!"{(← ctx.getFirstError)}"
   IO.println s!"main: {main}"
   IO.println s!"tree-vrp1: {← buf.getString}"
+  timerTest ctx
+  timer.release
   buf.releaseInner
   buf.release
   res.release
