@@ -1,8 +1,11 @@
 
 import «LeanGccJit»
 import LeanGccJit.Version
-import LeanGccJit.Types
+import LeanGccJit.Unsafe.Types
 import LeanGccJit.Unsafe
+
+open LeanGccJit
+open Unsafe
 
 inductive BFItem :=
   | Right

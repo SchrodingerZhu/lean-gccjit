@@ -1,3 +1,5 @@
+namespace LeanGccJit
+
 @[extern "lean_gcc_jit_version_major"]
 opaque getMajorVersion : Unit → Int
 

@@ -1,4 +1,6 @@
-import LeanGccJit.Types
+import LeanGccJit.Unsafe.Types
+namespace LeanGccJit
+namespace Unsafe
 
 @[extern "lean_gcc_jit_context_get_type"]
 opaque Context.getType (ctx : @& Context) (type : @& TypeEnum) : IO JitType

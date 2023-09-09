@@ -1,3 +1,6 @@
+namespace LeanGccJit
+namespace Unsafe
+
 opaque ContextPointed : NonemptyType
 def Context : Type := ContextPointed.type
 instance : Nonempty Context := ContextPointed.property

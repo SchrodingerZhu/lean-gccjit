@@ -1,3 +1,2 @@
-import LeanGccJit.Types
-import LeanGccJit.Unsafe
+import LeanGccJit.Unsafe.Types
 import LeanGccJit.Version

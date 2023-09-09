@@ -1,4 +1,6 @@
-import LeanGccJit.Types
+import LeanGccJit.Unsafe.Types
+namespace LeanGccJit
+namespace Unsafe
 
 @[extern "lean_gcc_jit_context_new_function"]
 opaque Context.newFunction (ctx : @& Context) (location : @& Option Location) (kind : @& FunctionKind) (retType : @& JitType) (name : @& String) (params : @& Array Param) (isVariadic : @& Bool) : IO Func

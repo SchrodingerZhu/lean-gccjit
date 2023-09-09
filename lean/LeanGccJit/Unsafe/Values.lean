@@ -1,4 +1,6 @@
-import LeanGccJit.Types
+import LeanGccJit.Unsafe.Types
+namespace LeanGccJit
+namespace Unsafe
 
 @[extern "lean_gcc_jit_context_new_global"]
 opaque Context.newGlobal (ctx : @& Context) (loc : @& Option Location) (kind: @& GlobalKind) (type : @& JitType) (name : @& String)  : IO LValue
