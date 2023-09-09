@@ -8,7 +8,7 @@ abbrev BinaryOP := Unsafe.BinaryOp
 abbrev Location := Unsafe.Location
 abbrev RawTypeEnum := Unsafe.TypeEnum
 abbrev Comparison := Unsafe.Comparison
-
+abbrev GlobalKind := Unsafe.GlobalKind
 
 -- Abstract Type
 inductive AType :=
@@ -113,18 +113,79 @@ end IType
 
 class IsIntegral (b : AType)
 
-instance : IsIntegral (AType.Raw Unsafe.TypeEnum.Int) where 
 instance : IsIntegral (AType.Raw Unsafe.TypeEnum.Int8) where
 instance : IsIntegral (AType.Raw Unsafe.TypeEnum.Int16) where
 instance : IsIntegral (AType.Raw Unsafe.TypeEnum.Int32) where
 instance : IsIntegral (AType.Raw Unsafe.TypeEnum.Int64) where
+instance : IsIntegral (AType.Raw Unsafe.TypeEnum.Int128) where
 instance : IsIntegral (AType.Raw Unsafe.TypeEnum.UInt8) where
 instance : IsIntegral (AType.Raw Unsafe.TypeEnum.UInt16) where
 instance : IsIntegral (AType.Raw Unsafe.TypeEnum.UInt32) where
 instance : IsIntegral (AType.Raw Unsafe.TypeEnum.UInt64) where
+instance : IsIntegral (AType.Raw Unsafe.TypeEnum.UInt128) where
+instance : IsIntegral (AType.Raw Unsafe.TypeEnum.SizeT) where
+
+instance : IsIntegral (AType.Raw Unsafe.TypeEnum.Int) where 
+instance : IsIntegral (AType.Raw Unsafe.TypeEnum.Char) where
+instance : IsIntegral (AType.Raw Unsafe.TypeEnum.Short) where
+instance : IsIntegral (AType.Raw Unsafe.TypeEnum.Long) where
+instance : IsIntegral (AType.Raw Unsafe.TypeEnum.LongLong) where
+instance : IsIntegral (AType.Raw Unsafe.TypeEnum.UnsignedChar) where
+instance : IsIntegral (AType.Raw Unsafe.TypeEnum.UnsignedShort) where
+instance : IsIntegral (AType.Raw Unsafe.TypeEnum.UnsignedInt) where
+instance : IsIntegral (AType.Raw Unsafe.TypeEnum.UnsignedLong) where
+instance : IsIntegral (AType.Raw Unsafe.TypeEnum.UnsignedLongLong) where
+
+
+class IsPointer (a : AType)
+instance : IsPointer (AType.Ptr ty) where
+instance [IsPointer ty] : IsPointer (AType.Volatile ty) where
+instance [IsPointer ty] : IsPointer (AType.Const ty) where
+instance : IsPointer (AType.Raw Unsafe.TypeEnum.ConstCharPtr) where
+instance : IsPointer (AType.Raw Unsafe.TypeEnum.VoidPtr) where
+instance : IsPointer (AType.Raw Unsafe.TypeEnum.FilePtr) where
+
+class Dereferenceable (b : AType) where 
+  Target : AType
+
+instance : Dereferenceable (AType.Ptr ty) where
+  Target := ty
+
+instance [Dereferenceable ty] : Dereferenceable (AType.Volatile ty) where
+  Target := Dereferenceable.Target ty
+
+instance [Dereferenceable ty] : Dereferenceable (AType.Const ty) where
+  Target := Dereferenceable.Target ty
+
+instance : Dereferenceable (AType.Raw Unsafe.TypeEnum.ConstCharPtr) where
+  Target := AType.Raw Unsafe.TypeEnum.Char
+
+class Indexible (b : AType) where 
+  Target : AType
+
+instance : Indexible (AType.Array ty len) where
+  Target := ty
+
+instance [Dereferenceable ty] : Indexible (AType.Ptr ty) where
+  Target := Dereferenceable.Target ty
+
+instance [Indexible ty] : Indexible (AType.Volatile ty) where
+  Target := Indexible.Target ty
+
+instance [Indexible ty] : Indexible (AType.Const ty) where
+  Target := Indexible.Target ty
 
 def RValue.cast (x : RValue α) (target : IType β) (loc : Option Location := none) : ContextM (RValue β) := 
   RValue.mk <$> (read >>= fun ctx => ctx.handle.newCast loc x.handle target.handle)
 
-def RValue.cmp (x : RValue α) (y : RValue α) (op : Comparison) (loc : Option Location := none) : ContextM (RValue (AType.Raw Unsafe.TypeEnum.Bool)) := do
+def RValue.cmp (x : RValue α)  (op : Comparison) (y : RValue α) (loc : Option Location := none) : ContextM (RValue (AType.Raw Unsafe.TypeEnum.Bool)) := 
   RValue.mk <$> (read >>= fun ctx => ctx.handle.newComparison loc op x.handle y.handle)
+
+def createGlobal (ty: IType α) (kind: GlobalKind) (name: String) (loc: Option Location := none) : ContextM (LValue α) := 
+  LValue.mk <$> (read >>= fun ctx => ctx.handle.newGlobal loc kind ty.handle name)
+
+def RValue.deref (ptr : RValue α) [D : Dereferenceable α] (loc: Option Location := none) : IO (LValue D.Target) := 
+  LValue.mk <$> ptr.handle.dereference loc
+
+def RValue.index (ptr : RValue α) [I : Indexible α] (idx: RValue β) [ IsIntegral β ] (loc: Option Location := none) : ContextM (LValue I.Target) := 
+  LValue.mk <$> (read >>= fun ctx => ctx.handle.newArrayAccess loc ptr.handle idx.handle)
