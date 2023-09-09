@@ -72,7 +72,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_array_type(
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto loc = unwrap_option<gcc_jit_location>(location);
     auto element = unwrap_pointer<gcc_jit_type>(element_type);
-    auto elements = lean_scalar_to_int(num_elements);
+    auto elements = lean_unbox(num_elements);
     auto result = gcc_jit_context_new_array_type(context, loc, element, elements);
     return map_notnull(result, wrap_pointer<gcc_jit_type>, "invalid array type");
 }

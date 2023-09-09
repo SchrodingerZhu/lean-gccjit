@@ -29,7 +29,7 @@ opaque JitType.getSize (ty: @& JitType) : IO Nat
 
 @[extern "lean_gcc_jit_context_new_array_type"]
 opaque Context.newArrayType 
-  (ctx : @& Context) (location : @& Option Location) (elemType : @& JitType) (size : @& Int) : IO JitType
+  (ctx : @& Context) (location : @& Option Location) (elemType : @& JitType) (size : @& Nat) : IO JitType
 
 @[extern "lean_gcc_jit_context_new_union_type"]
 opaque Context.newUnionType 

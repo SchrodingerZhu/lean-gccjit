@@ -1,3 +1,4 @@
+import LeanGccJit.Unsafe.Types
 import LeanGccJit.Unsafe.Context
 import LeanGccJit.Unsafe.Result
 import LeanGccJit.Unsafe.Object
