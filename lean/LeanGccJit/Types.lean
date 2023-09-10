@@ -278,7 +278,7 @@ structure Func (μ : AType) (δ : List (String × AType)) where
   params : HList (ParamTypes δ)
 
 structure Block where
-  private mk::
+  protected mk::
   handle : Unsafe.Block
 
 

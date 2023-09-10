@@ -311,7 +311,70 @@ def newStringLiteral (x : String)  : ContextM (RValue CConstCharPtr) := do
   RValue.mk <$> ctx.newStringLiteral x
 
 abbrev FuncT μ δ  := ReaderT (Func μ δ)
+abbrev FunctionM μ δ := FuncT μ δ ContextM
 abbrev BlockT := ReaderT Block
+abbrev BlockM μ δ := BlockT (FunctionM μ δ)
+
+
+def newBlockWithReturn (name : Option String) (x : BlockM μ δ (RValue α × Option Location))  : FunctionM μ δ Block := do
+  let func ← read
+  let blk ← Block.mk <$> func.handle.newBlock name
+  let (val, loc) ← x.run blk
+  blk.handle.endWithReturn loc val.handle
+  pure blk
+
+def newBlockWithJump (name : Option String) (x : BlockM μ δ (Option Location)) (blk' : Block) : FunctionM μ δ Block := do
+  let func ← read
+  let blk ← Block.mk <$> func.handle.newBlock name
+  let loc ← x.run blk
+  blk.handle.endWithJump loc blk'.handle
+  pure blk
+
+def newBlockWithMutualJump (name : Option String) (x : BlockM μ δ (Option Location)) (blk' : Block → FunctionM μ δ Block) : FunctionM μ δ (Block × Block) := do
+  let func ← read
+  let blk ← Block.mk <$> func.handle.newBlock name
+  let loc ← x.run blk
+  let blk' ← blk' blk
+  blk.handle.endWithJump loc blk'.handle
+  pure (blk, blk')
+
+def newBlockWithSelfJump (name : Option String) (x : BlockM μ δ (Option Location)) : FunctionM μ δ Block := do
+  let func ← read
+  let blk ← Block.mk <$> func.handle.newBlock name
+  let loc ← x.run blk
+  blk.handle.endWithJump loc blk.handle
+  pure blk
+
+def newBlockWithConditional (name : Option String) (x : BlockM μ δ (RValue CBool × Option Location)) (blk' : Block) (blk'' : Block) : FunctionM μ δ Block := do
+  let func ← read
+  let blk ← Block.mk <$> func.handle.newBlock name
+  let (val, loc) ← x.run blk
+  blk.handle.endWithConditional loc val.handle blk'.handle blk''.handle
+  pure blk
+
+def newBlockWithSelfJumpIfTrue (name : Option String) (x : BlockM μ δ (RValue CBool × Option Location)) (blk' : Block) : FunctionM μ δ Block := do
+  let func ← read
+  let blk ← Block.mk <$> func.handle.newBlock name
+  let (val, loc) ← x.run blk
+  blk.handle.endWithConditional loc val.handle blk.handle blk'.handle
+  pure blk
+
+def newBlockWithSelfJumpIfFalse (name : Option String) (x : BlockM μ δ (RValue CBool × Option Location)) (blk' : Block) : FunctionM μ δ Block := do
+  let func ← read
+  let blk ← Block.mk <$> func.handle.newBlock name
+  let (val, loc) ← x.run blk
+  blk.handle.endWithConditional loc val.handle blk'.handle blk.handle
+  pure blk
+
+def newBlockWithMutualConditional (name : Option String) (x : BlockM μ δ (RValue CBool × Option Location)) (blk' : Block → FunctionM μ δ Block) (blk'' : Block → FunctionM μ δ Block) : FunctionM μ δ (Block × Block × Block) := do
+  let func ← read
+  let blk ← Block.mk <$> func.handle.newBlock name
+  let (val, loc) ← x.run blk
+  let blk' ← blk' blk
+  let blk'' ← blk'' blk
+  blk.handle.endWithConditional loc val.handle blk'.handle blk''.handle
+  pure (blk, blk', blk'')
+  
 
 -- def TestStruct := CStruct "TestStruct" [("a", CInt), ("b", CInt)]
 
