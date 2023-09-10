@@ -281,5 +281,6 @@ structure Block where
   protected mk::
   handle : Unsafe.Block
 
+abbrev Case := Unsafe.Case
 
 
