@@ -89,7 +89,7 @@ partial def compileBFToFile (path: System.FilePath) (prog: String) : IO Unit := 
   let cursor ← main.newLocal none int "cursor"
   let mut block ← main.newBlock "entry"
   let one ← ctx.one int
-  block.addAssignment none cursor (← ctx.newRvalueFromUInt32 int 512)
+  block.addAssignment none cursor (← ctx.newRValueFromUInt32 int 512)
   let last ← compileBF ctx putchar getchar main block gBuffer cursor one (parseBFProg prog.toList #[])
   let zero ← ctx.zero int
   last.endWithReturn none zero

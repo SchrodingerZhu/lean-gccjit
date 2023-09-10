@@ -38,10 +38,10 @@ opaque RValue.asObject (rval : @& RValue) : IO Object
 opaque RValue.getType(rval : @& RValue) : IO JitType
 
 @[extern "lean_gcc_jit_context_new_rvalue_from_uint32"]
-opaque Context.newRvalueFromUInt32 (ctx : @& Context) (ty : @& JitType) (val : UInt32) : IO RValue
+opaque Context.newRValueFromUInt32 (ctx : @& Context) (ty : @& JitType) (val : UInt32) : IO RValue
 
 @[extern "lean_gcc_jit_context_new_rvalue_from_uint64"]
-opaque Context.newRvalueFromUInt64 (ctx : @& Context) (ty : @& JitType) (val : UInt64) : IO RValue
+opaque Context.newRValueFromUInt64 (ctx : @& Context) (ty : @& JitType) (val : UInt64) : IO RValue
 
 @[extern "lean_gcc_jit_context_zero"]
 opaque Context.zero (ctx : @& Context) (ty : @& JitType) : IO RValue
