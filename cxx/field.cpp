@@ -29,7 +29,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_bitfield(
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto location = unwrap_option<gcc_jit_location>(loc);
     auto ty = unwrap_pointer<gcc_jit_type>(type);
-    auto field_width = lean_scalar_to_int(width);
+    auto field_width = lean_unbox(width);
     auto field_name = lean_string_cstr(name);
     auto result = gcc_jit_context_new_bitfield(context, location, ty, field_width, field_name);
     return map_notnull(result, wrap_pointer<gcc_jit_field>, "failed to create field");

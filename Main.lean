@@ -3,6 +3,7 @@ import «LeanGccJit»
 import LeanGccJit.Version
 import LeanGccJit.Unsafe.Types
 import LeanGccJit.Unsafe
+import LeanGccJit.Monad
 
 open LeanGccJit
 open Unsafe

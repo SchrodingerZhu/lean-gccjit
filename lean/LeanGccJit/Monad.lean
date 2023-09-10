@@ -90,7 +90,10 @@ namespace IType
     IType.Aligned <$> x.handle.getAligned align
 
   def newField (x : IType α) (name: String) (loc: Option Location := none) : ContextM (Field name α) := 
-    Field.mk <$> (read >>= fun ctx => ctx.handle.newField loc x.handle name)
+    Field.Normal <$> (read >>= fun ctx => ctx.handle.newField loc x.handle name)
+
+  def newBitField (x : IType α) (name: String) (width: Nat) (loc: Option Location := none) : ContextM (Field name α) := 
+    Field.BitField <$> (read >>= fun ctx => ctx.handle.newBitField loc x.handle width name) <*> pure width
 
   def newStruct (name: String) (fields: HList (FieldTypes δ)) (loc: Option Location := none) : ContextM (IType (CStruct name δ)) := do
     let ctx ← getRawCtx
@@ -111,7 +114,7 @@ def newCast (x : RValue α)(target : IType β) (loc : Option Location := none) :
 def newComparison  (x : RValue α)  (op : Comparison) (y : RValue α) (loc : Option Location := none) 
   : ContextM (RValue (AType.Raw Unsafe.TypeEnum.Bool)) := 
   RValue.mk <$> (read >>= fun ctx => ctx.handle.newComparison loc op x.handle y.handle)
-  
+
 def newRValueFromUInt32 (ty : IType τ) [IsIntegral τ] (x : UInt32) : ContextM (RValue τ) := 
   RValue.mk <$> (read >>= fun ctx => ctx.handle.newRValueFromUInt32 ty.handle x)
 
@@ -124,10 +127,10 @@ def newRValueFromAddr (ty : IType τ) [IsPointer τ] (x : USize) : ContextM (RVa
 def createGlobal (ty: IType α) (kind: GlobalKind) (name: String) (loc: Option Location := none) : ContextM (LValue α) := 
   LValue.mk <$> (read >>= fun ctx => ctx.handle.newGlobal loc kind ty.handle name)
 
-def dereference  (ptr : RValue α) [D : Dereferenceable α] (loc: Option Location := none) : IO (LValue D.Target) := 
+def dereference  (ptr : RValue α) [Dereferenceable α ω] (loc: Option Location := none) : IO (LValue ω) := 
   LValue.mk <$> ptr.handle.dereference loc
 
-def newArrayAccess (ptr : RValue α) [I : Indexible α] (idx: RValue β) [ IsIntegral β ] (loc: Option Location := none) : ContextM (LValue I.Target) := 
+def newArrayAccess (ptr : RValue α) [Indexible α ω] (idx: RValue β) [ IsIntegral β ] (loc: Option Location := none) : ContextM (LValue ω) := 
   LValue.mk <$> (read >>= fun ctx => ctx.handle.newArrayAccess loc ptr.handle idx.handle)
 
 def newNull (ty: IType α) [IsPointer α] : ContextM (RValue α) := 
@@ -171,18 +174,20 @@ def RValue.accessUnionField (x : RValue (CUnion n δ)) (f : Field m β) (_ : (m,
 def RValue.accessUnionField! (x : RValue (CUnion n δ)) (f : Field m β) (loc: Option Location := none) : IO (RValue β) := 
   RValue.mk <$> x.handle.accessField loc f.handle
 
-def names (x : List (String × AType)) : List String := 
+@[reducible]
+private def names (x : List (String × AType)) : List String := 
   match x with
   | [] => []
   | (name, _) :: xs => name :: names xs
 
-def Proj (x : List (String × AType)) (n : List String) : List AType := 
+@[reducible]
+private def Proj (x : List (String × AType)) (n : List String) : List AType := 
   match x, n with
   | [], _ => []
   | _, [] => []
   | (u, ty) :: xs, v::ns => if u == v then ty :: Proj xs ns else Proj xs n
 
-def getFields (x : List (String × AType)) (h : HList (FieldTypes x)) (n : List String)  : List Unsafe.Field := 
+private def getFields (x : List (String × AType)) (h : HList (FieldTypes x)) (n : List String)  : List Unsafe.Field := 
   match x, h, n with
   | [], _, _ => []
   | _, _, [] => []
@@ -190,7 +195,7 @@ def getFields (x : List (String × AType)) (h : HList (FieldTypes x)) (n : List 
   | (u, ty) :: x :: xs, (t, ts), v::ns => 
     if u == v then t.handle :: getFields (x::xs) ts ns else getFields ((u, ty) :: x :: xs) (t, ts) ns
 
-def getHandles {x : List AType}(values : HList <| x.map RValue) : StateT (Array Unsafe.RValue) Id Unit :=
+private def getHandles {x : List AType}(values : HList <| x.map RValue) : StateT (Array Unsafe.RValue) Id Unit :=
   match x, values with
   | [], () => pure ()
   | [_], h => do
@@ -218,12 +223,104 @@ def newZeroStructConstructor
   (ty: IType (CStruct n δ)) (loc: Option Location := none) : ContextM (RValue (CStruct n δ)) := 
     RValue.mk <$> (getRawCtx >>= fun ctx => ctx.newStructConstructor loc ty.handle none #[])
 
-def TestStruct := CStruct "TestStruct" [("a", CInt), ("b", CInt)]
+def getAddress (x : LValue α) (loc: Option Location := none) : IO (RValue (CPtr α)) := 
+  RValue.mk <$> x.handle.getAddress loc 
 
-def testVal (ty : IType TestStruct) : ContextM (RValue TestStruct) := do
-  let int ← IType.createRaw RawTypeEnum.Int
-  let zero ← newZero int
-  newStructConstructor ty ["a", "b"] (zero, zero)
+def logicalNegate (x : RValue CBool) (loc: Option Location := none) : ContextM (RValue CBool) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newUnaryOp loc UnaryOp.LogicalNegate ty x.handle
+
+def abs (x : RValue α) [IsSigned α] (loc: Option Location := none) : ContextM (RValue α) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newUnaryOp loc UnaryOp.Abs ty x.handle
+
+def unaryMinus (x : RValue α) [IsPlainNumber α] (loc: Option Location := none) : ContextM (RValue α) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newUnaryOp loc UnaryOp.Minus ty x.handle
+
+def bitwiseNegate (x : RValue α) [IsIntegral α] (loc: Option Location := none) : ContextM (RValue α) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newUnaryOp loc UnaryOp.BitwiseNegate ty x.handle
+
+def plus [IsPlainNumber α] (x : RValue α) (y : RValue α) (loc: Option Location := none) : ContextM (RValue α) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newBinaryOp loc BinaryOp.Plus ty x.handle y.handle
+
+def minus [IsPlainNumber α] (x : RValue α) (y : RValue α) (loc: Option Location := none) : ContextM (RValue α) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newBinaryOp loc BinaryOp.Minus ty x.handle y.handle
+
+def multiply [IsPlainNumber α] (x : RValue α) (y : RValue α) (loc: Option Location := none) : ContextM (RValue α) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newBinaryOp loc BinaryOp.Mult ty x.handle y.handle
+
+def divide [IsPlainNumber α] (x : RValue α) (y : RValue α) (loc: Option Location := none) : ContextM (RValue α) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newBinaryOp loc BinaryOp.Divide ty x.handle y.handle
+
+def modulo [IsIntegral α] (x : RValue α) (y : RValue α) (loc: Option Location := none) : ContextM (RValue α) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newBinaryOp loc BinaryOp.Modulo ty x.handle y.handle
+
+def bitwiseAnd [IsIntegral α] (x : RValue α) (y : RValue α) (loc: Option Location := none) : ContextM (RValue α) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newBinaryOp loc BinaryOp.BitwiseAnd ty x.handle y.handle
+
+def bitwiseOr [IsIntegral α] (x : RValue α) (y : RValue α) (loc: Option Location := none) : ContextM (RValue α) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newBinaryOp loc BinaryOp.BitwiseOr ty x.handle y.handle
+
+def bitwiseXor [IsIntegral α] (x : RValue α) (y : RValue α) (loc: Option Location := none) : ContextM (RValue α) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newBinaryOp loc BinaryOp.BitwiseXor ty x.handle y.handle
+
+def shiftLeft [IsIntegral α] (x : RValue α) (y : RValue α) (loc: Option Location := none) : ContextM (RValue α) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newBinaryOp loc BinaryOp.LShift ty x.handle y.handle
+
+def shiftRight [IsIntegral α] (x : RValue α) (y : RValue α) (loc: Option Location := none) : ContextM (RValue α) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newBinaryOp loc BinaryOp.RShift ty x.handle y.handle
+
+def logicalAnd (x : RValue CBool) (y : RValue CBool) (loc: Option Location := none) : ContextM (RValue CBool) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newBinaryOp loc BinaryOp.LogicalAnd ty x.handle y.handle
+
+def logicalOr (x : RValue CBool) (y : RValue CBool) (loc: Option Location := none) : ContextM (RValue CBool) := do
+  let ty ← x.handle.getType
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newBinaryOp loc BinaryOp.LogicalOr ty x.handle y.handle
+
+def newStringLiteral (x : String)  : ContextM (RValue CConstCharPtr) := do
+  let ctx ← getRawCtx
+  RValue.mk <$> ctx.newStringLiteral x
+
+abbrev FuncT μ δ  := ReaderT (Func μ δ)
+abbrev BlockT := ReaderT Block
+
+-- def TestStruct := CStruct "TestStruct" [("a", CInt), ("b", CInt)]
+
+-- def testVal (ty : IType TestStruct) : ContextM (RValue TestStruct) := do
+--   let int ← IType.createRaw RawTypeEnum.Int
+--   let zero ← newZero int
+--   newStructConstructor ty ["a"] zero
+
+
 
 -- namespace test
 -- open AType

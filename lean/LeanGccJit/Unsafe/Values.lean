@@ -117,7 +117,7 @@ opaque RValue.dereference
 
 @[extern "lean_gcc_jit_lvalue_get_address"]
 opaque LValue.getAddress
-  (lval : @& RValue) (loc : @& Option Location) : IO RValue
+  (lval : @& LValue) (loc : @& Option Location) : IO RValue
 
 @[extern "lean_gcc_jit_lvalue_set_tls_model"]
 opaque LValue.setTlsModel
