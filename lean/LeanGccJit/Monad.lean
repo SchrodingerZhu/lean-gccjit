@@ -310,20 +310,112 @@ def newStringLiteral (x : String)  : ContextM (RValue CConstCharPtr) := do
   let ctx ← getRawCtx
   RValue.mk <$> ctx.newStringLiteral x
 
-abbrev FuncT μ δ  := ReaderT (Func μ δ)
-abbrev FunctionM μ δ := FuncT μ δ ContextM
+abbrev FuncT η μ δ := ReaderT (Func η μ δ)
+abbrev FunctionM η μ δ := FuncT η μ δ ContextM
 abbrev BlockT := ReaderT Block
-abbrev BlockM μ δ := BlockT (FunctionM μ δ)
+abbrev BlockM η μ δ := BlockT (FunctionM η μ δ)
 
+private def collectParams {δ : List (String × AType)} (h : HList (ParamTypes δ)) : StateT (Array Unsafe.Param) Id Unit := 
+  match δ, h with
+  | [], () => pure ()
+  | [_], h => do
+    let h := h.handle
+    let arr ← get
+    set <| arr.push h
+  | _::t::ts, (b, bs) => do
+    let h := b.handle
+    let arr ← get
+    set <| arr.push h
+    @collectParams (t::ts) bs
 
-def newBlockWithReturn (name : Option String) (x : BlockM μ δ (RValue α × Option Location × τ))  : FunctionM μ δ τ := do
+def newFunction (isExported: Bool) (ret : IType α) (name : String) (params: HList (ParamTypes δ)) (isVariadic: Bool) (body : FunctionM η α δ τ) (loc: Option Location := none) : ContextM τ := do
+  let ctx ← getRawCtx
+  let kind := if isExported then FunctionKind.Exported else FunctionKind.Internal
+  let (_, params') := collectParams params |>.run #[]
+  let handle ← ctx.newFunction loc kind ret.handle name params' isVariadic
+  let func := Func.mk handle ret params
+  body.run func
+
+def importFunction {δ : List (String × AType)} (ret : IType α) (name : String) (params: HList (ParamTypes δ)) (η: Bool) (loc: Option Location := none) : ContextM (Func η α δ) := do
+  let ctx ← getRawCtx
+  let (_, params') := collectParams params |>.run #[]
+  let handle ← ctx.newFunction loc FunctionKind.Imported ret.handle name params' η
+  pure <| Func.mk handle ret params
+
+@[reducible]
+private def RValueTypes (x : List (String × AType)) : List Type := 
+  match x with
+  | [] => []
+  | (_, ty) :: xs => RValue ty :: RValueTypes xs
+
+private def collectRValues {δ} (args : HList (RValueTypes δ)) : StateT (Array Unsafe.RValue) Id Unit :=
+  match δ, args with
+  | [], () => pure ()
+  | [_], h => do
+    let h := h.handle
+    let arr ← get
+    set <| arr.push h
+  | _::t::ts, (b, bs) => do
+    let h := b.handle
+    let arr ← get
+    set <| arr.push h
+    @collectRValues (t::ts) bs
+
+@[reducible]
+def mapRValue (x : List AType) : List Type :=
+  match x with
+  | [] => []
+  | ty :: xs => RValue ty :: mapRValue xs
+
+private def collectExtraRValues {Δ : List AType} (extra : HList (mapRValue Δ)) : StateT (Array Unsafe.RValue) Id Unit :=
+  match Δ, extra with
+  | [], () => pure ()
+  | [_], h => do
+    let h := h.handle
+    let arr ← get
+    set <| arr.push h
+  | _::t::ts, (b, bs) => do
+    let h := b.handle
+    let arr ← get
+    set <| arr.push h
+    @collectExtraRValues (t::ts) bs
+
+def newParam (name : String) (ty : IType α) (loc : Option Location := none) : ContextM (Param name α) := 
+  Param.mk <$> (read >>= fun f => f.handle.newParam loc ty.handle name)
+
+def newCall (f : Func false α δ) (args : HList (RValueTypes δ)) (loc: Option Location := none) : ContextM (RValue α) := do
+  let ctx ← getRawCtx
+  let (_, args) := collectRValues args |>.run #[]
+  RValue.mk <$> ctx.newCall loc f.handle args
+
+def newCallVariadic (Δ : List AType) (f : Func true α δ) (fixed : HList (RValueTypes δ)) (extra : HList (mapRValue Δ)) (loc: Option Location := none) : ContextM (RValue α) := do
+  let ctx ← getRawCtx
+  let (_, args) := collectRValues fixed |>.run #[]
+  let (_, args) := collectExtraRValues extra |>.run args
+  RValue.mk <$> ctx.newCall loc f.handle args
+
+def printfExample := do
+  let int ← IType.createRaw RawTypeEnum.Int
+  let constCharPtr ← IType.createRaw RawTypeEnum.ConstCharPtr
+  let params := [ ("fmt", CConstCharPtr)]
+  let Printf := Func true CInt params
+  let fmt ← newParam "fmt" constCharPtr
+  let printf : Printf ← importFunction int "printf" fmt true none
+  let world ← newStringLiteral "World"
+  let msg ← newStringLiteral "Hello, %s\n"
+  newCallVariadic [_] printf msg world
+
+def newLocal (name : String) (ty : IType α) (loc : Option Location := none) : FunctionM η μ δ (LValue α) := 
+  LValue.mk <$> (read >>= fun f => f.handle.newLocal loc ty.handle name)
+
+def newBlockWithReturn (name : Option String) (x : BlockM η μ δ (RValue α × Option Location × τ))  : FunctionM η μ δ τ := do
   let func ← read
   let blk ← Block.mk <$> func.handle.newBlock name
   let (val, loc, res) ← x.run blk
   blk.handle.endWithReturn loc val.handle
   pure res
 
-def newBlockWithJump (name : Option String) (x : BlockM μ δ (Option Location × Block × τ)) : FunctionM μ δ τ := do
+def newBlockWithJump (name : Option String) (x : BlockM η μ δ (Option Location × Block × τ)) : FunctionM η μ δ τ := do
   let func ← read
   let blk ← Block.mk <$> func.handle.newBlock name
   let (loc, blk', res) ← x.run blk
@@ -332,7 +424,7 @@ def newBlockWithJump (name : Option String) (x : BlockM μ δ (Option Location �
 
 def newBlockWithConditional 
   (name : Option String) 
-  (x : BlockM μ δ (RValue CBool × Option Location × Block × Block × τ)) : FunctionM μ δ τ := do
+  (x : BlockM η μ δ (RValue CBool × Option Location × Block × Block × τ)) : FunctionM η μ δ τ := do
   let func ← read
   let blk ← Block.mk <$> func.handle.newBlock name
   let (val, loc, blk₀, blk₁, res) ← x.run blk
@@ -345,7 +437,7 @@ structure Switch (α : AType) where
   default : Block
   cases : Array Case
   
-def newBlockWithSwitch [IsIntegral α] (name : Option String) (x : BlockM μ δ (Switch α × τ)) : FunctionM μ δ τ := do
+def newBlockWithSwitch [IsIntegral α] (name : Option String) (x : BlockM η μ δ (Switch α × τ)) : FunctionM η μ δ τ := do
   let func ← read
   let blk ← Block.mk <$> func.handle.newBlock name
   let (switch, res) ← x.run blk

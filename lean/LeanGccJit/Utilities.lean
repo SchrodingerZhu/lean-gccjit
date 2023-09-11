@@ -1,6 +1,7 @@
 namespace LeanGccJit
 namespace Utilities
 
+@[reducible]
 def HList : List Type → Type
   | [] => Unit
   | [x] => x

@@ -12,7 +12,15 @@ abbrev Location := Unsafe.Location
 abbrev RawTypeEnum := Unsafe.TypeEnum
 abbrev Comparison := Unsafe.Comparison
 abbrev GlobalKind := Unsafe.GlobalKind
+abbrev FunctionKind := Unsafe.FunctionKind
 
+namespace FunctionKind
+  export Unsafe.FunctionKind (
+    Internal
+    Exported
+    Imported
+  )
+end FunctionKind
 namespace Comparison 
   export Unsafe.Comparison (
     EQ
@@ -263,16 +271,17 @@ instance [IsIntegral x] : IsPlainNumber x where
 instance [IsFloatingPoint x] : IsPlainNumber x where
 
 structure Param (name : String) (ty : AType) where
-  private mk::
+  protected mk::
   handle : Unsafe.Param
 
+@[reducible]
 def ParamTypes (x : List (String × AType)) : List Type := 
   match x with
   | [] => []
   | (name, ty) :: xs => (Param name ty) :: ParamTypes xs
 
-structure Func (μ : AType) (δ : List (String × AType)) where
-  private mk::
+structure Func (η: Bool) (μ : AType) (δ : List (String × AType))  where
+  protected mk::
   handle : Unsafe.Func
   ret : IType μ
   params : HList (ParamTypes δ)
