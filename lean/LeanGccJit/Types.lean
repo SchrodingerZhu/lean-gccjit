@@ -165,11 +165,8 @@ def Field.handle (x : Field name ty) : Unsafe.Field :=
   | Field.BitField handle _ => handle
 
 abbrev HList := Utilities.HList
-
-def FieldTypes (x : List (String × AType)) : List Type := 
-  match x with
-  | [] => []
-  | (name, ty) :: xs => (Field name ty) :: FieldTypes xs
+abbrev Proj {μ} := @Utilities.Proj μ
+abbrev FieldTypes δ := Utilities.AttrListMap δ (fun (x : String × AType) => Field (x.fst) (x.snd))
 
 inductive IType : AType → Type where
   | Raw : (handle: RawType) → IType (AType.Raw raw)
@@ -274,13 +271,11 @@ structure Param (name : String) (ty : AType) where
   protected mk::
   handle : Unsafe.Param
 
-@[reducible]
-def ParamTypes (x : List (String × AType)) : List Type := 
-  match x with
-  | [] => []
-  | (name, ty) :: xs => (Param name ty) :: ParamTypes xs
+abbrev AttrList := List (String × AType)
+abbrev AttributeOf (δ : AttrList) := Utilities.AttributeOf δ
+abbrev ParamTypes δ := Utilities.AttrListMap δ (fun (x : String × AType) => Param (x.fst) (x.snd))
 
-structure Func (η: Bool) (μ : AType) (δ : List (String × AType))  where
+structure Func (η: Bool) (μ : AType) (δ : AttrList)  where
   protected mk::
   handle : Unsafe.Func
   ret : IType μ
@@ -292,4 +287,25 @@ structure Block where
 
 abbrev Case := Unsafe.Case
 
+structure RValue (tag : AType) where
+  protected mk::
+  handle : Unsafe.RValue
+
+structure LValue (tag : AType) where
+  protected mk::
+  handle : Unsafe.LValue
+
+class AsObject (x : Type u) where
+  asObject : x → IO (Unsafe.Object)
+
+instance : AsObject (RValue ty) where
+  asObject x := x.handle.asObject
+
+instance : AsObject (LValue ty) where
+  asObject x := x.handle.asObject
+
+instance : AsObject (IType ty) where
+  asObject x := x.handle.asObject
+
+abbrev RValueTypes δ := Utilities.AttrListMap δ (RValue ·.2)
 

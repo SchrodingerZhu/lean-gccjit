@@ -3,43 +3,10 @@ import LeanGccJit.Types
 namespace LeanGccJit
 namespace Core
 
-private def collectFieldHandles (fields : List (String × AType)) (hFields : HList (FieldTypes fields)) : StateT (Array Unsafe.Field) Id Unit := 
-  match fields, hFields with
-  | [], () => pure ()
-  | [_], h => do
-    let h := h.handle
-    let arr ← get
-    set <| arr.push h
-  | _::t::ts, (b, bs) => do
-    let h := b.handle
-    let arr ← get
-    set <| arr.push h
-    collectFieldHandles (t::ts) bs
-
 structure Context where 
   private mk::
   handle : Unsafe.Context
   dumpBuffers: Array (String × Unsafe.DynamicBuffer)
-
-structure RValue (tag : AType) where
-  private mk::
-  handle : Unsafe.RValue
-
-structure LValue (tag : AType) where
-  private mk::
-  handle : Unsafe.LValue
-
-class AsObject (x : Type u) where
-  asObject : x → IO (Unsafe.Object)
-
-instance : AsObject (RValue ty) where
-  asObject x := x.handle.asObject
-
-instance : AsObject (LValue ty) where
-  asObject x := x.handle.asObject
-
-instance : AsObject (IType ty) where
-  asObject x := x.handle.asObject
 
 abbrev ContextT := ReaderT Context
 abbrev ContextM := ContextT IO
@@ -97,13 +64,13 @@ namespace IType
 
   def newStruct (name: String) (fields: HList (FieldTypes δ)) (loc: Option Location := none) : ContextM (IType (CStruct name δ)) := do
     let ctx ← getRawCtx
-    let (_, handles) := collectFieldHandles δ fields |>.run #[]
+    let handles := Utilities.collectArray fields (·.handle)
     let handle ← ctx.newStructType loc name handles
     pure <| IType.Struct (← handle.asJitType) fields
 
   def newUnion (name: String) (fields: HList (FieldTypes δ)) (loc: Option Location := none) : ContextM (IType (CUnion name δ)) := do
     let ctx ← getRawCtx
-    let (_, handles) := collectFieldHandles δ fields |>.run #[]
+    let handles := Utilities.collectArray fields (·.handle)
     let handle ← ctx.newUnionType loc name handles
     pure <| IType.Union handle fields
 end IType
@@ -174,50 +141,16 @@ def RValue.accessUnionField (x : RValue (CUnion n δ)) (f : Field m β) (_ : (m,
 def RValue.accessUnionField! (x : RValue (CUnion n δ)) (f : Field m β) (loc: Option Location := none) : IO (RValue β) := 
   RValue.mk <$> x.handle.accessField loc f.handle
 
-@[reducible]
-private def names (x : List (String × AType)) : List String := 
-  match x with
-  | [] => []
-  | (name, _) :: xs => name :: names xs
-
-@[reducible]
-private def Proj (x : List (String × AType)) (n : List String) : List AType := 
-  match x, n with
-  | [], _ => []
-  | _, [] => []
-  | (u, ty) :: xs, v::ns => if u == v then ty :: Proj xs ns else Proj xs n
-
-private def getFields (x : List (String × AType)) (h : HList (FieldTypes x)) (n : List String)  : List Unsafe.Field := 
-  match x, h, n with
-  | [], _, _ => []
-  | _, _, [] => []
-  | [(u, _)], t, x::_ => if u == x then [t.handle] else []
-  | (u, ty) :: x :: xs, (t, ts), v::ns => 
-    if u == v then t.handle :: getFields (x::xs) ts ns else getFields ((u, ty) :: x :: xs) (t, ts) ns
-
-private def getHandles {x : List AType}(values : HList <| x.map RValue) : StateT (Array Unsafe.RValue) Id Unit :=
-  match x, values with
-  | [], () => pure ()
-  | [_], h => do
-    let h := h.handle
-    let arr ← get
-    set <| arr.push h
-  | _::t::ts, (b, bs) => do
-    let h := b.handle
-    let arr ← get
-    set <| arr.push h
-    @getHandles (t::ts) bs
-
 def newStructConstructor 
   (ty: IType (CStruct n δ)) 
   (names : List String) 
   (values : HList ((Proj δ names).map RValue)) (loc: Option Location := none) : ContextM (RValue (CStruct n δ)) := 
   match ty with
   | IType.Struct handle fields => do
-    let selected := getFields δ fields names
+    let selected := Utilities.selectArray fields names (·.handle)
     let ctx ← getRawCtx
-    let (_, values) := getHandles values |>.run #[]
-    RValue.mk <$> ctx.newStructConstructor loc handle selected.toArray values
+    let values := Utilities.collectArray values (·.handle)
+    RValue.mk <$> ctx.newStructConstructor loc handle selected values
 
 def newZeroStructConstructor
   (ty: IType (CStruct n δ)) (loc: Option Location := none) : ContextM (RValue (CStruct n δ)) := 
@@ -315,83 +248,32 @@ abbrev FunctionM η μ δ := FuncT η μ δ ContextM
 abbrev BlockT := ReaderT Block
 abbrev BlockM η μ δ := BlockT (FunctionM η μ δ)
 
-private def collectParams {δ : List (String × AType)} (h : HList (ParamTypes δ)) : StateT (Array Unsafe.Param) Id Unit := 
-  match δ, h with
-  | [], () => pure ()
-  | [_], h => do
-    let h := h.handle
-    let arr ← get
-    set <| arr.push h
-  | _::t::ts, (b, bs) => do
-    let h := b.handle
-    let arr ← get
-    set <| arr.push h
-    @collectParams (t::ts) bs
-
 def newFunction (isExported: Bool) (ret : IType α) (name : String) (params: HList (ParamTypes δ)) (isVariadic: Bool) (body : FunctionM η α δ τ) (loc: Option Location := none) : ContextM τ := do
   let ctx ← getRawCtx
   let kind := if isExported then FunctionKind.Exported else FunctionKind.Internal
-  let (_, params') := collectParams params |>.run #[]
+  let params' := Utilities.collectArray params (·.handle) 
   let handle ← ctx.newFunction loc kind ret.handle name params' isVariadic
   let func := Func.mk handle ret params
   body.run func
 
 def importFunction {δ : List (String × AType)} (ret : IType α) (name : String) (params: HList (ParamTypes δ)) (η: Bool) (loc: Option Location := none) : ContextM (Func η α δ) := do
   let ctx ← getRawCtx
-  let (_, params') := collectParams params |>.run #[]
+  let params' := Utilities.collectArray params (·.handle)
   let handle ← ctx.newFunction loc FunctionKind.Imported ret.handle name params' η
   pure <| Func.mk handle ret params
-
-@[reducible]
-private def RValueTypes (x : List (String × AType)) : List Type := 
-  match x with
-  | [] => []
-  | (_, ty) :: xs => RValue ty :: RValueTypes xs
-
-private def collectRValues {δ} (args : HList (RValueTypes δ)) : StateT (Array Unsafe.RValue) Id Unit :=
-  match δ, args with
-  | [], () => pure ()
-  | [_], h => do
-    let h := h.handle
-    let arr ← get
-    set <| arr.push h
-  | _::t::ts, (b, bs) => do
-    let h := b.handle
-    let arr ← get
-    set <| arr.push h
-    @collectRValues (t::ts) bs
-
-@[reducible]
-def mapRValue (x : List AType) : List Type :=
-  match x with
-  | [] => []
-  | ty :: xs => RValue ty :: mapRValue xs
-
-private def collectExtraRValues {Δ : List AType} (extra : HList (mapRValue Δ)) : StateT (Array Unsafe.RValue) Id Unit :=
-  match Δ, extra with
-  | [], () => pure ()
-  | [_], h => do
-    let h := h.handle
-    let arr ← get
-    set <| arr.push h
-  | _::t::ts, (b, bs) => do
-    let h := b.handle
-    let arr ← get
-    set <| arr.push h
-    @collectExtraRValues (t::ts) bs
 
 def newParam (name : String) (ty : IType α) (loc : Option Location := none) : ContextM (Param name α) := 
   Param.mk <$> (read >>= fun f => f.handle.newParam loc ty.handle name)
 
 def newCall (f : Func false α δ) (args : HList (RValueTypes δ)) (loc: Option Location := none) : ContextM (RValue α) := do
   let ctx ← getRawCtx
-  let (_, args) := collectRValues args |>.run #[]
+  let args := Utilities.collectArray args (·.handle)
   RValue.mk <$> ctx.newCall loc f.handle args
 
-def newCallVariadic (Δ : List AType) (f : Func true α δ) (fixed : HList (RValueTypes δ)) (extra : HList (mapRValue Δ)) (loc: Option Location := none) : ContextM (RValue α) := do
+def newCallVariadic (Δ : List AType) (f : Func true α δ) (fixed : HList (RValueTypes δ)) (extra : HList (Δ.map RValue)) (loc: Option Location := none) : ContextM (RValue α) := do
   let ctx ← getRawCtx
-  let (_, args) := collectRValues fixed |>.run #[]
-  let (_, args) := collectExtraRValues extra |>.run args
+  let args := Utilities.collectArray fixed (·.handle)
+  let args := args ++ Utilities.collectArray extra (·.handle)
   RValue.mk <$> ctx.newCall loc f.handle args
 
 def printfExample := do
