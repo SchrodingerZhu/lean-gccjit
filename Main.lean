@@ -1,11 +1,10 @@
 import «LeanGccJit»
 import LeanGccJit.Version
-import LeanGccJit.Unsafe.Types
-import LeanGccJit.Unsafe
-import LeanGccJit.Monad
+import LeanGccJit.Core.Types
+import LeanGccJit.Core
 
 open LeanGccJit
-open Unsafe
+open Core Version
 
 inductive BFItem :=
   | Right

@@ -1,6 +1,6 @@
-import LeanGccJit.Unsafe.Types
+import LeanGccJit.Core.Types
 namespace LeanGccJit
-namespace Unsafe
+namespace Core
 
 @[extern "lean_gcc_jit_function_new_block"]
 opaque Func.newBlock (func : @& Func) (name: @& Option String) : IO Block

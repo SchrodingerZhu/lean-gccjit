@@ -1,6 +1,6 @@
-import LeanGccJit.Unsafe.Types
+import LeanGccJit.Core.Types
 namespace LeanGccJit
-namespace Unsafe
+namespace Core
 
 @[extern "lean_gcc_jit_context_new_case"]
 opaque Context.newCase (ctx : @& Context) (min: @& RValue) (max: @& RValue) (block: @& Block) : IO Case

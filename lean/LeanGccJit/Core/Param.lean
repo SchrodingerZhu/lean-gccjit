@@ -1,6 +1,6 @@
-import LeanGccJit.Unsafe.Types
+import LeanGccJit.Core.Types
 namespace LeanGccJit
-namespace Unsafe
+namespace Core
 
 @[extern "lean_gcc_jit_context_new_param"]
 opaque Context.newParam (ctx : @& Context) (location : @& Option Location) (type : @& JitType) (name : @& String) : IO Param

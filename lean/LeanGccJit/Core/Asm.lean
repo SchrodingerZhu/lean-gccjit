@@ -1,6 +1,6 @@
-import LeanGccJit.Unsafe.Types
+import LeanGccJit.Core.Types
 namespace LeanGccJit
-namespace Unsafe
+namespace Core
 
 @[extern "gcc_jit_block_add_extended_asm"]
 opaque Block.addExtendedAsm 
