@@ -27,4 +27,16 @@ lean_gcc_jit_result_get_global(b_lean_obj_arg res, b_lean_obj_arg name, lean_obj
     return map_notnull(reinterpret_cast<size_t>(addr), lean_box_usize, "failed to get global");
 }
 
+extern "C" LEAN_EXPORT lean_obj_res
+lean_gcc_jit_result_get_function(b_lean_obj_arg res, b_lean_obj_arg name, lean_object * /* w */)
+{
+    auto result = unwrap_pointer<gcc_jit_result>(res);
+    auto fname = lean_string_cstr(name);
+    auto addr = gcc_jit_result_get_code(result, fname);
+    return map_notnull(
+        addr,
+        [](void * func) { return lean_alloc_closure(func, 1, 0); },
+        "failed to get function");
+}
+
 } // namespace lean_gccjit
