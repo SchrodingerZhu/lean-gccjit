@@ -2,6 +2,8 @@ import LeanGccJit.Core.Types
 namespace LeanGccJit
 namespace Core
 
+
+/-- Create a new global variable. -/
 @[extern "lean_gcc_jit_context_new_global"]
 opaque Context.newGlobal (ctx : @& Context) (loc : @& Option Location) (kind: @& GlobalKind) (type : @& JitType) (name : @& String)  : IO LValue
 

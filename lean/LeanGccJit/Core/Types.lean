@@ -140,9 +140,15 @@ inductive TlsModel :=
   | InitialExec
   | LocalExec
 
+/-- The kind of a global variable -/
 inductive GlobalKind := 
+  /-- `Exported` means that the symbol is visible outside the module. 
+      This is similar to declare a global variable with default visibility in C. -/
   | Exported
+  /-- `Internal` means that the symbol is not visible outside the module. 
+      This is similar to declare a global variable with hidden visibility in C. -/
   | Internal
+  /-- `Imported` means that the symbol is to be imported from other modules. -/
   | Imported
 
 inductive UnaryOp :=
