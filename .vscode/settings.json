@@ -1,3 +1,9 @@
 {
-  "clangd.arguments": ["--header-insertion=never"]
+  "clangd.arguments": [
+    "--header-insertion=never"
+  ],
+  "editor.formatOnType": true,
+  "[lisp]": {
+    "editor.wordSeparators": "`|;:'\",()"
+  }
 }
