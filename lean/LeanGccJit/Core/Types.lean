@@ -104,10 +104,21 @@ inductive BoolOption :=
     (by creating and passing in `Location` instances).
   -/
   | DebugInfo
+  /--
+    If `true`, `Context.compile` will dump its initial `tree` representation of your code to `stderr` 
+    (before any optimizations).
+  -/
   | DumpInitialTree
+  /--
+    If `true`, `Context.compile` will dump the `gimple` representation of your code to `stderr`, 
+    before any optimizations are performed.
+  -/
   | DumpInitialGimple
+  /--
+    If `true`, `Context.compile` will dump the final generated code to `stderr`, 
+    in the form of assembly language.
+  -/
   | DumpGenereatedCode
-  | DumpExecutionCode
   | DumpSummary
   | DumpEverything
   | SelfCheckGC
