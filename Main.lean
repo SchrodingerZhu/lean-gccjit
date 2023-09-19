@@ -78,6 +78,7 @@ partial def parseBFProg (prog: List Char) (compiled: Array BFItem) : Array BFIte
 partial def compileBFToFile (path: System.FilePath) (prog: String) : IO Unit := do
   let ctx ← Context.acquire
   ctx.setIntOption IntOption.OptimizationLevel 3
+  ctx.setBoolOption BoolOption.SelfCheckGC true
   let int ← ctx.getType TypeEnum.Int
   let chParam ← ctx.newParam none int "ch"
   let putchar ← ctx.newFunction none FunctionKind.Imported int "putchar" #[chParam] false
@@ -99,41 +100,41 @@ partial def compileBFToFile (path: System.FilePath) (prog: String) : IO Unit := 
 @[export lean_wrap_io]
 def wrapIO : IO Unit := pure ()
 
-partial def compileBFAndExecute (prog: String) : IO Unit := do
-  let ctx ← Context.acquire
-  ctx.setIntOption IntOption.OptimizationLevel 3
-  let int ← ctx.getType TypeEnum.Int
-  let unitTy ← ctx.getType TypeEnum.SizeT
-  let chParam ← ctx.newParam none int "ch"
-  let unit ← ctx.newParam none unitTy "unit"
-  let putchar ← ctx.newFunction none FunctionKind.Imported int "putchar" #[chParam] false
-  let getchar ← ctx.newFunction none FunctionKind.Imported int "getchar" #[] false
-  let voidPtr ← ctx.getType TypeEnum.VoidPtr
-  let leanIOUnit ← ctx.newFunction none FunctionKind.Imported voidPtr "lean_wrap_io" #[unit] false
-  let unit ← ctx.newParam none unitTy "unit"
-  let main ← ctx.newFunction none FunctionKind.Exported voidPtr "jit_entry_point" #[unit] false
-  let buffer ← ctx.newArrayType none int 1024
-  let gBuffer ← ctx.newGlobal none GlobalKind.Internal buffer "buffer"
-  let cursor ← main.newLocal none int "cursor"
-  let mut block ← main.newBlock "entry"
-  let one ← ctx.one int
-  block.addAssignment none cursor (← ctx.newRValueFromUInt32 int 512)
-  let last ← compileBF ctx putchar getchar main block gBuffer cursor one (parseBFProg prog.toList #[])
-  let unitVal ← ctx.one unitTy
-  let ioUnit ← ctx.newCall none leanIOUnit #[unitVal]
-  let cStr ← ctx.getType TypeEnum.ConstCharPtr
-  let cStrParam ← ctx.newParam none cStr "str"
-  let printf ← ctx.newFunction none FunctionKind.Imported int "printf" #[cStrParam] true
-  let funcPtr ← leanIOUnit.getAddress none 
-  let template ← ctx.newStringLiteral "calling %p\n"
-  let callPrintf ← ctx.newCall none printf #[template, funcPtr]
-  last.addEval none callPrintf
-  last.endWithReturn none ioUnit
-  let res ← ctx.compile
-  let func : IO Unit ← res.getFunction! "jit_entry_point"
-  func
-  res.release
-  ctx.release
+-- partial def compileBFAndExecute (prog: String) : IO Unit := do
+--   let ctx ← Context.acquire
+--   ctx.setIntOption IntOption.OptimizationLevel 3
+--   let int ← ctx.getType TypeEnum.Int
+--   let unitTy ← ctx.getType TypeEnum.SizeT
+--   let chParam ← ctx.newParam none int "ch"
+--   let unit ← ctx.newParam none unitTy "unit"
+--   let putchar ← ctx.newFunction none FunctionKind.Imported int "putchar" #[chParam] false
+--   let getchar ← ctx.newFunction none FunctionKind.Imported int "getchar" #[] false
+--   let voidPtr ← ctx.getType TypeEnum.VoidPtr
+--   let leanIOUnit ← ctx.newFunction none FunctionKind.Imported voidPtr "lean_wrap_io" #[unit] false
+--   let unit ← ctx.newParam none unitTy "unit"
+--   let main ← ctx.newFunction none FunctionKind.Exported voidPtr "jit_entry_point" #[unit] false
+--   let buffer ← ctx.newArrayType none int 1024
+--   let gBuffer ← ctx.newGlobal none GlobalKind.Internal buffer "buffer"
+--   let cursor ← main.newLocal none int "cursor"
+--   let mut block ← main.newBlock "entry"
+--   let one ← ctx.one int
+--   block.addAssignment none cursor (← ctx.newRValueFromUInt32 int 512)
+--   let last ← compileBF ctx putchar getchar main block gBuffer cursor one (parseBFProg prog.toList #[])
+--   let unitVal ← ctx.one unitTy
+--   let ioUnit ← ctx.newCall none leanIOUnit #[unitVal]
+--   let cStr ← ctx.getType TypeEnum.ConstCharPtr
+--   let cStrParam ← ctx.newParam none cStr "str"
+--   let printf ← ctx.newFunction none FunctionKind.Imported int "printf" #[cStrParam] true
+--   let funcPtr ← leanIOUnit.getAddress none 
+--   let template ← ctx.newStringLiteral "calling %p\n"
+--   let callPrintf ← ctx.newCall none printf #[template, funcPtr]
+--   last.addEval none callPrintf
+--   last.endWithReturn none ioUnit
+--   let res ← ctx.compile
+--   let func : IO Unit ← res.getFunction! "jit_entry_point"
+--   func
+--   res.release
+--   ctx.release
 
 
 def typeCheck1 (ctx : Context) : IO Unit := do
@@ -275,7 +276,7 @@ def main : IO Unit := do
   IO.println s!"minor version: {getMinorVersion ()}"
   IO.println s!"patch version: {getPatchlevel ()}"
   compileBFToFile "/tmp/bf" "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++."
-  compileBFAndExecute "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++."
+  --compileBFAndExecute "++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++."
   let ctx ← Context.acquire
   ctx.setIntOption IntOption.OptimizationLevel 3
   ctx.setBoolOption BoolOption.DumpEverything true

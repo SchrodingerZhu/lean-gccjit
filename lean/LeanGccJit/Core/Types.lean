@@ -74,12 +74,35 @@ instance : Nonempty Timer := TimerPointed.property
 See also [String Options](https://gcc.gnu.org/onlinedocs/jit/topics/contexts.html#string-options).
 -/
 inductive StrOption :=
+  /-- 
+    The name of the program, for use as a prefix when printing error messages to stderr. 
+    If NULL, or default, `libgccjit.so` is used.
+  -/
   | ProgName
 
+/--
+`IntOption` is the Lean4 representation of `gcc_jit_int_option`.
+See also [Integer Options](https://gcc.gnu.org/onlinedocs/jit/topics/contexts.html#integer-options).
+-/
 inductive IntOption :=
+  /--
+    How much to optimize the code.
+    Valid values are `0-3`, corresponding to GCC’s command-line options `-O0` through `-O3`.
+    The default value is `0` (unoptimized).
+  -/
   | OptimizationLevel
 
+/--
+`BoolOption` is the Lean4 representation of `gcc_jit_bool_option`.
+See also [Boolean Options](https://gcc.gnu.org/onlinedocs/jit/topics/contexts.html#boolean-options).
+-/
 inductive BoolOption :=
+  /--
+    If `true`, `Context.compile` will attempt to do the right thing so that if you attach a debugger to the process, 
+    it will be able to inspect variables and step through your code.
+    Note that you can’t step through code unless you set up source location information for the code 
+    (by creating and passing in `Location` instances).
+  -/
   | DebugInfo
   | DumpInitialTree
   | DumpInitialGimple
