@@ -119,9 +119,26 @@ inductive BoolOption :=
     in the form of assembly language.
   -/
   | DumpGenereatedCode
+  /--
+    If `true`, `Context.compile` will print information to stderr on the actions it is performing.
+  -/
   | DumpSummary
+  /--
+    If `true`, `Context.compile` will dump copious amount of information on what it’s doing to 
+    various files within a temporary directory. Use `KeepIntermediates` (see below) to see the results. 
+    The files are intended to be human-readable, but the exact files and their formats are subject to change.
+  -/
   | DumpEverything
+  /--
+    If `true`, `libgccjit` will aggressively run its garbage collector, to shake out bugs 
+    (greatly slowing down the compile). This is likely to only be of interest to developers of the library. 
+    It is used when running the selftest suite.
+  -/
   | SelfCheckGC
+  /--
+    If `true`, `Context.compile` will not clean up intermediate files written to the filesystem, 
+    and will display their location on stderr.
+  -/
   | KeepIntermediates
 
 inductive OutputKind :=
