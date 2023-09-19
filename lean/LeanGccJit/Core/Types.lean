@@ -69,6 +69,10 @@ opaque TimerPointed : NonemptyType
 def Timer : Type := TimerPointed.type
 instance : Nonempty Timer := TimerPointed.property
 
+/--
+`StrOption` is the Lean4 representation of `gcc_jit_str_option`.
+See also [String Options](https://gcc.gnu.org/onlinedocs/jit/topics/contexts.html#string-options).
+-/
 inductive StrOption :=
   | ProgName
 

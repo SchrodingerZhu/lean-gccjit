@@ -22,7 +22,7 @@ lean_gcc_jit_context_set_str_option(b_lean_obj_arg ctx, b_lean_obj_arg opt, b_le
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto option = static_cast<gcc_jit_str_option>(lean_unbox(opt));
     LEAN_GCC_JIT_FAILED_IF(option >= GCC_JIT_NUM_STR_OPTIONS);
-    auto val = lean_string_cstr(value);
+    auto val = unwrap_option_str(value);
     gcc_jit_context_set_str_option(context, option, val);
     return lean_io_result_mk_ok(lean_box(0));
 }

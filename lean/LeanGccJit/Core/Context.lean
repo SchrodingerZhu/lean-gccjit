@@ -9,7 +9,7 @@ opaque Context.acquire : IO Context
 opaque Context.release : Context → IO PUnit
 
 @[extern "lean_gcc_jit_context_set_str_option"]
-opaque Context.setStrOption : @& Context → @& StrOption → @& String → IO PUnit
+opaque Context.setStrOption : @& Context → @& StrOption → @& Option String → IO PUnit
 
 @[extern "lean_gcc_jit_context_set_int_option"]
 opaque Context.setIntOption : @& Context → @& IntOption → @& Int → IO PUnit
