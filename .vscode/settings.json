@@ -3,7 +3,4 @@
     "--header-insertion=never"
   ],
   "editor.formatOnType": true,
-  "[lisp]": {
-    "editor.wordSeparators": "`|;:'\",()"
-  }
 }
