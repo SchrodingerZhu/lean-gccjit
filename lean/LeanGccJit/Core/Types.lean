@@ -152,13 +152,13 @@ The kind of output to generate (corresponds to `gcc_jit_output_kind`). Available
 See also [Output Kinds](https://gcc.gnu.org/onlinedocs/jit/topics/compilation.html#c.gcc_jit_output_kind).
 -/
 inductive OutputKind :=
-  /-- Compile the context to an assembler file. -/
+  /-- `GCC_JIT_OUTPUT_KIND_ASSEMBLER`: Compile the context to an assembler file. -/
   | Assembler
-  /-- Compile the context to an object file. -/
+  /-- `GCC_JIT_OUTPUT_KIND_OBJECT_FILE`: Compile the context to an object file. -/
   | ObjectFile
-  /-- Compile the context to a dynamic library. -/
+  /-- `GCC_JIT_OUTPUT_KIND_DYNAMIC_LIBRARY`: Compile the context to a dynamic library. -/
   | DynamicLibrary
-  /-- Compile the context to an executable. -/
+  /-- `GCC_JIT_OUTPUT_KIND_EXECUTABLE`: Compile the context to an executable. -/
   | Executable
 
 /--
@@ -264,50 +264,110 @@ inductive FunctionKind :=
   -/
   | AlwaysInline
 
+/--
+`TlsModel` is the Lean4 representation of `gcc_jit_tls_model`.
+It is to be used with `LValue.setTlsModel`.
+
+- [`gcc_jit_tls_model`](https://gcc.gnu.org/onlinedocs/jit/topics/expressions.html#c.gcc_jit_lvalue_set_tls_model.gcc_jit_tls_model).
+- [`Thread Local`](https://gcc.gnu.org/onlinedocs/gcc/Thread-Local.html)
+-/
 inductive TlsModel := 
+  /-- `GCC_JIT_TLS_MODEL_NONE`: Do not set specific TLS model -/
   | None
+  /-- `GCC_JIT_TLS_MODEL_GLOBAL_DYNAMIC`: Global dynamic TLS model -/
   | GeneralDynamic
+  /-- `GCC_JIT_TLS_MODEL_LOCAL_DYNAMIC`: Local dynamic TLS model -/
   | LocalDynamic
+  /-- `GCC_JIT_TLS_MODEL_INITIAL_EXEC`: Initial exec TLS model -/
   | InitialExec
+  /-- `GCC_JIT_TLS_MODEL_LOCAL_EXEC`: Local exec TLS model -/
   | LocalExec
 
-/-- The kind of a global variable -/
+/-- 
+`GlobalKind` is the Lean4 representation of `gcc_jit_global_kind`.
+It is to be used with `Context.newGlobal`.
+See also [Global Variables](https://gcc.gnu.org/onlinedocs/jit/topics/expressions.html#global-variables).
+-/
 inductive GlobalKind := 
-  /-- `Exported` means that the symbol is visible outside the module. 
-      This is similar to declare a global variable with default visibility in C. -/
+  /-- 
+    `GCC_JIT_GLOBAL_EXPORTED`: Global is defined by the client code and is visible by name outside of this JIT context 
+    via `Result.getGlobal` (and this value is required for the global to be accessible via that entrypoint).
+  -/
   | Exported
-  /-- `Internal` means that the symbol is not visible outside the module. 
-      This is similar to declare a global variable with hidden visibility in C. -/
+  /-- 
+    `GCC_JIT_GLOBAL_INTERNAL`: Global is defined by the client code, but is invisible outside of it. Analogous to a `static`
+    global within a `.c` file. Specifically, the variable will only be visible within this context and within child contexts.
+  -/
   | Internal
-  /-- `Imported` means that the symbol is to be imported from other modules. -/
+  /-- 
+    `GCC_JIT_GLOBAL_IMPORTED`: Global is not defined by the client code; we’re merely referring to it. Analogous to using an `extern`
+    global from a header file.
+  -/
   | Imported
 
+/--
+`UnaryOp` is the Lean4 representation of `gcc_jit_unary_op`.
+It is to be used with `Context.newUnaryOp`.
+See also [Unary Operations](https://gcc.gnu.org/onlinedocs/jit/topics/expressions.html#unary-operations).
+-/
 inductive UnaryOp :=
+  /-- `GCC_JIT_UNARY_OP_MINUS`: equivalent to `- (EXPR)` in C. -/
   | Minus
+  /-- `GCC_JIT_UNARY_OP_BITWISE_NEGATE`: equivalent to `~ (EXPR)` in C. -/
   | BitwiseNegate
+  /-- `GCC_JIT_UNARY_OP_LOGICAL_NEGATE`: equivalent to `! (EXPR)` in C. -/
   | LogicalNegate
+  /-- `GCC_JIT_UNARY_OP_ABS`: equivalent to `abs(EXPR)` in C. -/
   | Abs
 
+/--
+`BinaryOp` is the Lean4 representation of `gcc_jit_binary_op`.
+It is to be used with `Context.newBinaryOp` or `Block.addAssignmentOp`.
+See also [Binary Operations](https://gcc.gnu.org/onlinedocs/jit/topics/expressions.html#binary-operations).
+-/
 inductive BinaryOp :=
+  /-- `GCC_JIT_BINARY_OP_PLUS`: equivalent to `x + y` in C. -/
   | Plus
+  /-- `GCC_JIT_BINARY_OP_MINUS`: equivalent to `x - y` in C. -/
   | Minus
+  /-- `GCC_JIT_BINARY_OP_MULT`: equivalent to `x * y` in C. -/
   | Mult
+  /-- `GCC_JIT_BINARY_OP_DIVIDE`: equivalent to `x / y` in C. -/
   | Divide
+  /-- `GCC_JIT_BINARY_OP_MODULO`: equivalent to `x % y` in C. -/
   | Modulo
+  /-- `GCC_JIT_BINARY_OP_BITWISE_AND`: equivalent to `x & y` in C. -/
   | BitwiseAnd
+  /-- `GCC_JIT_BINARY_OP_BITWISE_XOR`: equivalent to `x ^ y` in C. -/
   | BitwiseXor
+  /-- `GCC_JIT_BINARY_OP_BITWISE_OR`: equivalent to `x | y` in C. -/
   | BitwiseOr
+  /-- `GCC_JIT_BINARY_OP_LOGICAL_AND`: equivalent to `x && y` in C. -/
   | LogicalAnd
+  /-- `GCC_JIT_BINARY_OP_LOGICAL_OR`: equivalent to `x || y` in C. -/
   | LogicalOr
+  /-- `GCC_JIT_BINARY_OP_LSHIFT`: equivalent to `x << y` in C. -/
   | LShift
+  /-- `GCC_JIT_BINARY_OP_RSHIFT`: equivalent to `x >> y` in C. -/
   | RShift
 
+/--
+`Comparison` is the Lean4 representation of `gcc_jit_comparison`. 
+It is to be used with `Context.newComparison`.
+See also [Comparisons](https://gcc.gnu.org/onlinedocs/jit/topics/expressions.html#c.gcc_jit_comparison).
+-/
 inductive Comparison :=
+  /-- `GCC_JIT_COMPARISON_EQ`: equivalent to `x == y` in C. -/
   | EQ
+  /-- `GCC_JIT_COMPARISON_NE`: equivalent to `x != y` in C. -/
   | NE
+  /-- `GCC_JIT_COMPARISON_LT`: equivalent to `x < y` in C. -/
   | LT
+  /-- `GCC_JIT_COMPARISON_LE`: equivalent to `x <= y` in C. -/
   | LE
+  /-- `GCC_JIT_COMPARISON_GT`: equivalent to `x > y` in C. -/
   | GT
+  /-- `GCC_JIT_COMPARISON_GE`: equivalent to `x >= y` in C. -/
   | GE
 
 opaque DynamicBufferPointed : NonemptyType
