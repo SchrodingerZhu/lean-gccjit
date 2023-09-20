@@ -187,10 +187,10 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_end_with_extended_asm_got
     auto fallthrough_ = unwrap_pointer<gcc_jit_block>(fallthrough);
     auto * result = with_allocation<gcc_jit_block *>(blocks_len, [=](gcc_jit_block ** ptr) {
         unwrap_area(blocks_len, lean_array_cptr(blocks), ptr);
-        gcc_jit_block_end_with_extended_asm_goto(block_, location, asm_str_, num_blocks, ptr, fallthrough_);
-        return lean_box(0);
+        auto asm_ = gcc_jit_block_end_with_extended_asm_goto(block_, location, asm_str_, num_blocks, ptr, fallthrough_);
+        return map_notnull(asm_, wrap_pointer<gcc_jit_extended_asm>, "invalid extended asm");
     });
-    return lean_io_result_mk_ok(result);
+    return result;
 }
 
 

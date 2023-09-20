@@ -4,7 +4,7 @@ namespace Core
 
 @[extern "lean_gcc_jit_block_add_extended_asm"]
 opaque Block.addExtendedAsm 
-  (block : @& Block) (loc : @& Option Location) (asmTemplate : @& String) : IO PUnit
+  (block : @& Block) (loc : @& Option Location) (asmTemplate : @& String) : IO ExtendedAsm
 
 @[extern "lean_gcc_jit_extended_asm_as_object"]
 opaque ExtendedAsm.asObject (asm : @& ExtendedAsm) : IO Object
@@ -21,7 +21,6 @@ opaque ExtendedAsm.addOutputOperand
   (symbolicName : @& Option String)
   (constraint : @& String)
   (dest : @& LValue) : IO PUnit
-
 
 @[extern "lean_gcc_jit_extended_asm_add_input_operand"]
 opaque ExtendedAsm.addInputOperand 

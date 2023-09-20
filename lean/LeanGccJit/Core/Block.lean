@@ -42,6 +42,7 @@ opaque Block.endWithSwitch
 @[extern "lean_gcc_jit_block_end_with_extended_asm_goto"]
 opaque Block.endWithExtendedAsmGoto 
   (block : @& Block) 
-  (loc: @& Option Location) 
+  (loc: @& Option Location)
+  (asmString : @& String)
   (gotoBlocks : @& Array Block) 
-  (fallthrough : @& Block) : IO PUnit
+  (fallthrough : @& Block) : IO ExtendedAsm

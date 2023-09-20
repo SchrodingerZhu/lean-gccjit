@@ -11,8 +11,8 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_add_extended_asm(
     auto * block = unwrap_pointer<gcc_jit_block>(blk);
     auto * location = unwrap_option<gcc_jit_location>(loc);
     auto asm_str_ = lean_string_cstr(asm_str);
-    gcc_jit_block_add_extended_asm(block, location, asm_str_);
-    return lean_io_result_mk_ok(lean_box(0));
+    auto asm_ = gcc_jit_block_add_extended_asm(block, location, asm_str_);
+    return map_notnull(asm_, wrap_pointer<gcc_jit_extended_asm>, "invalid extended asm");
 }
 LEAN_GCC_JIT_UPCAST(extended_asm, object);
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_extended_asm_set_volatile_flag(
