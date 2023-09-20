@@ -62,6 +62,16 @@ def Case : Type := CasePointed.type
 instance : Nonempty Case := CasePointed.property
 
 opaque ExtendedAsmPointed : NonemptyType
+/--
+`ExtendedAsm` is the Lean4 representation of `gcc_jit_extended_asm`.
+See also [Extended Asm](https://gcc.gnu.org/onlinedocs/jit/topics/asm.html#c.gcc_jit_extended_asm).
+
+`ExtendedAsm` is designed to be constructed in multiple steps:
+- An initial call that creates an empty `ExtendedAsm` with assembly template.
+  - `Block.addExtendedAsm` is used to create `asm` statement with no control flow
+  - `Block.endWithExtendedAsmGoto` is used to create `asm goto` statement with control flow 
+- A series of calls to add operands to the `ExtendedAsm` or set attributes.
+-/
 def ExtendedAsm : Type := ExtendedAsmPointed.type
 instance : Nonempty ExtendedAsm := ExtendedAsmPointed.property
 
