@@ -1,4 +1,5 @@
 import Lake
+import Init.System.IO
 open Lake DSL
 
 package «lean-gccjit» {
@@ -10,8 +11,13 @@ lean_lib «LeanGccJit» {
   -- add library configuration options here
 }
 
-def flags [MonadLakeEnv m] [Monad m] : m (Array String) := do
-  pure #["-I", (← getLeanIncludeDir).toString, "-fPIC", "-std=gnu++17", "-O3", "-fvisibility=hidden", "-ffreestanding"]
+def flags : SchedulerM (Array String) := do
+  let extraFlags ← IO.getEnv "LEAN_GCCJIT_FLAGS" 
+  let extraFlags := extraFlags.getD "" |>.trim |>.splitOn " " |>.filter (·.length > 0)
+  return #[
+    "-I", (← getLeanIncludeDir).toString, 
+    "-fPIC", "-std=gnu++17", "-O3", "-fvisibility=hidden", "-ffreestanding"
+  ] ++ extraFlags
 
 def objectFile (pkg : Package) (name : String) : SchedulerM (BuildJob FilePath) := do
   let oFile := pkg.buildDir / "cxx" / (name ++ ".o")
