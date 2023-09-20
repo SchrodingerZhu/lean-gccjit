@@ -311,17 +311,40 @@ inductive Comparison :=
   | GE
 
 opaque DynamicBufferPointed : NonemptyType
+/--
+A `DynamicBuffer` is a buffer used to store a string. This is to be used with
+`Context.registerDumpBuffer`. In the backstage, this is just a wrapper around
+`char **`.
+-/
 def DynamicBuffer : Type := DynamicBufferPointed.type
 instance : Nonempty DynamicBuffer := DynamicBufferPointed.property
 
+/--
+Create a `DynamicBuffer`. This will allocate a word as the same size as `char *`.
+The initial value of the word is set to `NULL`.
+-/
 @[extern "lean_gcc_jit_dynamic_buffer_acquire"]
 opaque DynamicBuffer.acquire : IO DynamicBuffer
 
+/--
+Release a `DynamicBuffer`. This will free the memory allocated by `DynamicBuffer.acquire`.
+### Note
+The inner string is not freed by this function. It is recommended to call `DynamicBuffer.releaseInner`
+before calling this function.
+-/
 @[extern "lean_gcc_jit_dynamic_buffer_release"]
 opaque DynamicBuffer.release : DynamicBuffer → IO PUnit
 
+/--
+Release the memory associated with the string stored in the `DynamicBuffer`. This string is set
+by `libgccjit` via `Context.compile` or `Context.compileToFile`. It is safe to call this function
+multiple times as it will reset the string to `NULL` after its first call.
+-/
 @[extern "lean_gcc_jit_dynamic_buffer_release_inner"]
 opaque DynamicBuffer.releaseInner : @& DynamicBuffer → IO PUnit
 
+/--
+Get the string stored in the `DynamicBuffer`. This function returns `none` if the string is `NULL`.
+-/
 @[extern "lean_gcc_jit_dynamic_buffer_get_string"]
 opaque DynamicBuffer.getString : @& DynamicBuffer → IO (Option String)
