@@ -141,51 +141,127 @@ inductive BoolOption :=
   -/
   | KeepIntermediates
 
+/--
+The kind of output to generate (corresponds to `gcc_jit_output_kind`). Available kinds are:
+| OutputKind       | Typical Suffix           |
+|------------------|--------------------------|
+| Assembler        | .s                       |
+| ObjectFile       | .o                       |
+| DynamicLibrary   | .so, .dll, .dylib        |
+| Executable       | .exe, (no suffix)        |
+See also [Output Kinds](https://gcc.gnu.org/onlinedocs/jit/topics/compilation.html#c.gcc_jit_output_kind).
+-/
 inductive OutputKind :=
+  /-- Compile the context to an assembler file. -/
   | Assembler
+  /-- Compile the context to an object file. -/
   | ObjectFile
+  /-- Compile the context to a dynamic library. -/
   | DynamicLibrary
+  /-- Compile the context to an executable. -/
   | Executable
 
+/--
+`TypeEnum` is the Lean4 representation of `gcc_jit_types`.
+See [Standard Types](https://gcc.gnu.org/onlinedocs/jit/topics/types.html#standard-types) for more details.
+-/
 inductive TypeEnum := 
+  /-- `GCC_JIT_TYPE_VOID` (represents `void` in C) -/
   | Void
+  /-- `GCC_JIT_TYPE_VOID_PTR` (represents `void*` in C) -/
   | VoidPtr
+  /-- `GCC_JIT_TYPE_BOOL` (represents `_Bool` in C99, or `bool` in C++) -/
   | Bool
+  /-- `GCC_JIT_TYPE_CHAR` (represents `char` in C) -/
   | Char
+  /-- `GCC_JIT_TYPE_SIGNED_CHAR` (represents `signed char` in C) -/
   | SignedChar 
+  /-- `GCC_JIT_TYPE_UNSIGNED_CHAR` (represents `unsigned char` in C) -/
   | UnsignedChar
+  /-- `GCC_JIT_TYPE_SHORT` (represents `short` in C) -/
   | Short
+  /-- `GCC_JIT_TYPE_UNSIGNED_SHORT` (represents `unsigned short` in C) -/
   | UnsignedShort
+  /-- `GCC_JIT_TYPE_INT` (represents `int` in C) -/
   | Int
+  /-- `GCC_JIT_TYPE_UNSIGNED_INT` (represents `unsigned int` in C) -/
   | UnsignedInt
+  /-- `GCC_JIT_TYPE_LONG` (represents `long` in C) -/
   | Long
+  /-- `GCC_JIT_TYPE_UNSIGNED_LONG` (represents `unsigned long` in C) -/
   | UnsignedLong
+  /-- `GCC_JIT_TYPE_LONG_LONG` (represents `long long` in C) -/
   | LongLong
+  /-- `GCC_JIT_TYPE_UNSIGNED_LONG_LONG` (represents `unsigned long long` in C) -/
   | UnsignedLongLong
+  /-- `GCC_JIT_TYPE_FLOAT` (represents `float` in C) -/
   | Float
+  /-- `GCC_JIT_TYPE_DOUBLE` (represents `double` in C) -/
   | Double
+  /-- `GCC_JIT_TYPE_LONG_DOUBLE` (represents `long double` in C) -/
   | LongDouble
+  /-- `GCC_JIT_TYPE_CONST_CHAR_PTR` (represents `const char*` in C) -/
   | ConstCharPtr
-  | SizeT
+  /-- `GCC_JIT_TYPE_SIZE_T` (represents `size_t` in C) -/
+  | SizeT 
+  /-- `GCC_JIT_TYPE_FILE_PTR` (represents `FILE*` in C) -/
   | FilePtr
+  /-- `GCC_JIT_TYPE_COMPLEX_FLOAT` (represents `_Complex float` in C) -/
   | ComplexFloat
+  /-- `GCC_JIT_TYPE_COMPLEX_DOUBLE` (represents `_Complex double` in C) -/
   | ComplexDouble
+  /-- `GCC_JIT_TYPE_COMPLEX_LONG_DOUBLE` (represents `_Complex long double` in C) -/
   | ComplexLongDouble
+  /-- `GCC_JIT_TYPE_UINT8_T` (represents `uint8_t` in C) -/
   | UInt8
+  /-- `GCC_JIT_TYPE_UINT16_T` (represents `uint16_t` in C) -/
   | UInt16
+  /-- `GCC_JIT_TYPE_UINT32_T` (represents `uint32_t` in C) -/
   | UInt32
+  /-- `GCC_JIT_TYPE_UINT64_T` (represents `uint64_t` in C) -/
   | UInt64
+  /-- `GCC_JIT_TYPE_UINT128_T` (represents `uint128_t` in C) -/
   | UInt128
+  /-- `GCC_JIT_TYPE_INT8_T` (represents `int8_t` in C) -/
   | Int8
+  /-- `GCC_JIT_TYPE_INT16_T` (represents `int16_t` in C) -/
   | Int16
+  /-- `GCC_JIT_TYPE_INT32_T` (represents `int32_t` in C) -/
   | Int32
+  /-- `GCC_JIT_TYPE_INT64_T` (represents `int64_t` in C) -/
   | Int64
+  /-- `GCC_JIT_TYPE_INT128_T` (represents `int128_t` in C) -/
   | Int128
 
+/-- 
+`FunctionKind` is the Lean4 representation of `gcc_jit_function_kind`. 
+This enum controls the kind of function created.
+See also [Function Kinds](https://gcc.gnu.org/onlinedocs/jit/topics/functions.html#c.gcc_jit_context_new_function.gcc_jit_function_kind).
+-/
 inductive FunctionKind := 
+  /-- 
+    `GCC_JIT_FUNCTION_EXPORTED`: Function is defined by the client code and visible by name outside of the JIT.
+    This value is required if you want to extract machine code for this function from a `Result` via `Result.getCode`.
+  -/
   | Exported
+   /--
+    `GCC_JIT_FUNCTION_INTERNAL`: Function is defined by the client code, but is invisible outside of the JIT. 
+    Analogous to a `static` function.
+   -/
   | Internal
+  /--
+    `GCC_JIT_FUNCTION_IMPORTED`: Function is not defined by the client code; we’re merely referring to it. 
+    Analogous to using an “extern” function from a header file.
+  -/
   | Imported
+  /--
+    `GCC_JIT_FUNCTION_ALWAYS_INLINE`: Function is only ever inlined into other functions, 
+    and is invisible outside of the JIT.
+    Analogous to prefixing with `inline` and adding `__attribute__((always_inline))`
+    
+    Inlining will only occur when the optimization level is above 0; when optimization is off, 
+    this is essentially the same as GCC_JIT_FUNCTION_INTERNAL.
+  -/
   | AlwaysInline
 
 inductive TlsModel := 
