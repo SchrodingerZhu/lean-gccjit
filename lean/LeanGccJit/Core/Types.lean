@@ -30,30 +30,108 @@ def FunctionType : Type := FunctionTypePointed.type
 instance : Nonempty FunctionType := FunctionTypePointed.property
 
 opaque VectorTypePointed : NonemptyType
+/--
+`VectorType` is the Lean4 representation of `gcc_jit_vector_type`.
+
+It represents a simd vector type, e.g. `int __attribute__((vector_size(16)))`.
+
+## Note
+In `GCCJIT`, `JitType.getVector` is the typical way to obtain a vectorized data type. However,
+that API actually returns a new `JitType`. Instead, `GCCJIT` uses `VectorType` in those reflection APIs,
+namely `VectorType.getNumUnits` and `VectorType.getElementType`. For those two APIs, one can
+call `JitType.dyncastVector` to obtain a `VectorType` instance first.
+-/
 def VectorType : Type := VectorTypePointed.type
 instance : Nonempty VectorType := VectorTypePointed.property
 
 opaque StructPointed : NonemptyType
+/--
+`Struct` is the Lean4 representation of `gcc_jit_struct`.
+See also [`gcc_jit_struct`](https://gcc.gnu.org/onlinedocs/jit/topics/types.html#c.gcc_jit_struct).
+---
+A `Struct` represents a compound type analagous to a `C` struct.
+
+A `Struct` can be created in mainly two ways:
+- `Context.newStruct` creates a new `Struct` with given fields. 
+- `Context.newOpaqueStruct` creates a new opaque `Struct` with given name. 
+  The fields of the `Struct` can be added later using `Struct.setFields`.
+
+Notice that once fields are set, the struct cannot be changed anymore.
+-/
 def Struct : Type := StructPointed.type
 instance : Nonempty Struct := StructPointed.property
 
 opaque FieldPointed : NonemptyType
+/--
+`Field` is the Lean4 representation of `gcc_jit_field`.
+See also [`gcc_jit_field`](https://gcc.gnu.org/onlinedocs/jit/topics/types.html#c.gcc_jit_field).
+---
+A `Field` is used to refer a member of a `Struct` type.
+-/
 def Field : Type := FieldPointed.type
 instance : Nonempty Field := FieldPointed.property
 
 opaque BlockPointed : NonemptyType
+/--
+`Block` is the Lean4 representation of `gcc_jit_block`.
+See also [Blocks](https://gcc.gnu.org/onlinedocs/jit/topics/functions.html#blocks).
+---
+A `Block` represents a basic block within a function 
+i.e. a sequence of statements with a single entry point and a single exit point.
+
+The first basic block that you create within a function will be the entrypoint.
+
+Each basic block that you create within a function **MUST** be terminated,
+either with a conditional, a jump, a return, a switch, or an asm goto.
+
+It’s legal to have multiple basic blocks that return within one function.
+-/
 def Block : Type := BlockPointed.type
 instance : Nonempty Block := BlockPointed.property
 
 opaque RValuePointed : NonemptyType
+/--
+`RValue` is the Lean4 representation of `gcc_jit_rvalue`.
+See also [RValues](https://gcc.gnu.org/onlinedocs/jit/topics/expressions.html#rvalues).
+---
+A `RValue` is an expression that can be computed.
+It can be simple, e.g.:
+ - an integer value e.g. 0 or 42
+ - a string literal e.g. “Hello world”
+ - a variable e.g. i. These are also lvalues (see below).
+
+or compound e.g.:
+ - a unary expression e.g. !cond
+ - a binary expression e.g. (a + b)
+ - a function call e.g. get_distance (&player_ship, &target)
+etc.
+
+Every `RValue` has an associated type, and the API will check to ensure that types match up 
+correctly (otherwise the `Context` will emit an error).
+-/
 def RValue : Type := RValuePointed.type
 instance : Nonempty RValue := RValuePointed.property
 
 opaque LValuePointed : NonemptyType
+/--
+`LValue` is the Lean4 representation of `gcc_jit_lvalue`.
+See also [LValues](https://gcc.gnu.org/onlinedocs/jit/topics/expressions.html#lvalues).
+---
+An `LValue` is something that can of the left-hand side of an assignment: 
+a storage area (such as a variable). 
+It is also usable as an `RValue` (converted with `LValue.asRValue`), 
+where the rvalue is computed by reading from the storage area.
+-/
 def LValue : Type := LValuePointed.type
 instance : Nonempty LValue := LValuePointed.property
 
 opaque ParamPointed : NonemptyType
+/--
+`Param` is the Lean4 representation of `gcc_jit_param`.
+See also [Params](https://gcc.gnu.org/onlinedocs/jit/topics/functions.html#params).
+## Note
+One should **NOT** reuse a `Param` in multiple functions.
+-/
 def Param : Type := ParamPointed.type
 instance : Nonempty Param := ParamPointed.property
 
