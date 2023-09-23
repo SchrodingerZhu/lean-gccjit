@@ -13,3 +13,27 @@ import LeanGccJit.Core.Values
 import LeanGccJit.Core.Case
 import LeanGccJit.Core.Timer
 import LeanGccJit.Core.Asm
+
+namespace LeanGccJit
+namespace Core
+class AsObject (α : Type) where
+  asObject : α -> IO Object
+
+def getDebugString [AsObject α] (x : α) : IO String := 
+  AsObject.asObject x >>= Object.getDebugString
+
+def getContext [AsObject α] (x : α) : IO Context := 
+  AsObject.asObject x >>= Object.getContext
+  
+instance : AsObject Object := ⟨ pure ⟩
+instance : AsObject RValue := ⟨ RValue.asObject ⟩
+instance : AsObject LValue := ⟨ LValue.asObject ⟩
+instance : AsObject JitType := ⟨ JitType.asObject ⟩
+instance : AsObject Location := ⟨ Location.asObject ⟩
+instance : AsObject Field := ⟨ Field.asObject ⟩
+instance : AsObject ExtendedAsm := ⟨ ExtendedAsm.asObject ⟩
+instance : AsObject Block := ⟨ Block.asObject ⟩
+instance : AsObject Case := ⟨ Case.asObject ⟩
+instance : AsObject Func := ⟨ Func.asObject ⟩
+instance : AsObject Param := ⟨ Param.asObject ⟩
+

@@ -14,18 +14,54 @@ def Object : Type := ObjectPointed.type
 instance : Nonempty Object := ObjectPointed.property
 
 opaque LocationPointed : NonemptyType
+/--
+`Location` is the Lean4 representation of `gcc_jit_location`.
+See also [`Source Localtions`](https://gcc.gnu.org/onlinedocs/jit/topics/locations.html#source-locations).
+## Note
+A `Location` encapsulates a source code location, so that you can (optionally) 
+associate locations in your language with statements in the JIT-compiled code, 
+allowing the debugger to single-step through your language.
+
+`Location` instances are optional: it is always passed as `Option Location` 
+to the APIs that use it.
+
+You can construct them using `Context.newLocation`.
+
+You need to enable `BoolOption.DebugInfo` on the `Context` for these locations to actually 
+be usable by the debugger.
+-/
 def Location : Type := LocationPointed.type
 instance : Nonempty Location := LocationPointed.property
 
 opaque JitTypePointed : NonemptyType
+/--
+`JitType` is the Lean4 representation of `gcc_jit_type`.
+See also [`Types`](https://gcc.gnu.org/onlinedocs/jit/topics/types.html#types).
+-/
 def JitType : Type := JitTypePointed.type
 instance : Nonempty JitType := JitTypePointed.property
 
 opaque FunctionPointed : NonemptyType
+/--
+`Func` is the Lean4 representation of `gcc_jit_function`.
+
+`Function` is a special namespace in Lean4, so we use `Func` instead.
+See also [`Functions`](https://gcc.gnu.org/onlinedocs/jit/topics/functions.html#functions).
+## Note
+A `Func` represents a function - either one that we’re creating ourselves, or one that we’re referencing.
+-/
 def Func : Type := FunctionPointed.type
 instance : Nonempty Func := FunctionPointed.property
 
 opaque FunctionTypePointed : NonemptyType
+/--
+`FunctionType` is the Lean4 representation of `gcc_jit_function_type`.
+
+## Note
+`FunctionType` can be obtained by calling `JitType.dyncastFunction` on function pointer types.
+It is typically used in reflection APIs, 
+e.g. `FunctionType.getReturnType`, `FunctionType.getParamCount` and `FunctionType.getParamType`. 
+-/
 def FunctionType : Type := FunctionTypePointed.type
 instance : Nonempty FunctionType := FunctionTypePointed.property
 
@@ -48,7 +84,7 @@ opaque StructPointed : NonemptyType
 /--
 `Struct` is the Lean4 representation of `gcc_jit_struct`.
 See also [`gcc_jit_struct`](https://gcc.gnu.org/onlinedocs/jit/topics/types.html#c.gcc_jit_struct).
----
+## Note
 A `Struct` represents a compound type analagous to a `C` struct.
 
 A `Struct` can be created in mainly two ways:
@@ -65,7 +101,7 @@ opaque FieldPointed : NonemptyType
 /--
 `Field` is the Lean4 representation of `gcc_jit_field`.
 See also [`gcc_jit_field`](https://gcc.gnu.org/onlinedocs/jit/topics/types.html#c.gcc_jit_field).
----
+## Note
 A `Field` is used to refer a member of a `Struct` type.
 -/
 def Field : Type := FieldPointed.type
@@ -75,7 +111,7 @@ opaque BlockPointed : NonemptyType
 /--
 `Block` is the Lean4 representation of `gcc_jit_block`.
 See also [Blocks](https://gcc.gnu.org/onlinedocs/jit/topics/functions.html#blocks).
----
+## Note
 A `Block` represents a basic block within a function 
 i.e. a sequence of statements with a single entry point and a single exit point.
 
@@ -91,23 +127,27 @@ instance : Nonempty Block := BlockPointed.property
 
 opaque RValuePointed : NonemptyType
 /--
+
 `RValue` is the Lean4 representation of `gcc_jit_rvalue`.
+
 See also [RValues](https://gcc.gnu.org/onlinedocs/jit/topics/expressions.html#rvalues).
----
+
+## Note
 A `RValue` is an expression that can be computed.
 It can be simple, e.g.:
- - an integer value e.g. 0 or 42
- - a string literal e.g. “Hello world”
+ - an integer value e.g. `0` or `42`
+ - a string literal e.g. `“Hello world”`
  - a variable e.g. i. These are also lvalues (see below).
 
 or compound e.g.:
- - a unary expression e.g. !cond
- - a binary expression e.g. (a + b)
- - a function call e.g. get_distance (&player_ship, &target)
+ - a unary expression e.g. `!cond`
+ - a binary expression e.g. `(a + b)`
+ - a function call e.g. `get_distance (&player_ship, &target)`
 etc.
 
 Every `RValue` has an associated type, and the API will check to ensure that types match up 
 correctly (otherwise the `Context` will emit an error).
+
 -/
 def RValue : Type := RValuePointed.type
 instance : Nonempty RValue := RValuePointed.property
@@ -116,7 +156,7 @@ opaque LValuePointed : NonemptyType
 /--
 `LValue` is the Lean4 representation of `gcc_jit_lvalue`.
 See also [LValues](https://gcc.gnu.org/onlinedocs/jit/topics/expressions.html#lvalues).
----
+## Note
 An `LValue` is something that can of the left-hand side of an assignment: 
 a storage area (such as a variable). 
 It is also usable as an `RValue` (converted with `LValue.asRValue`), 
@@ -138,6 +178,8 @@ instance : Nonempty Param := ParamPointed.property
 opaque CasePointed : NonemptyType
 /--
 `Case` is the Lean4 representation of `gcc_jit_case`.
+
+## Note
 A `Case` represents a case within a switch statement, and is created within a particular 
 `Context` using `Context.newCase`. Each case expresses a multivalued range of integer values. 
 You can express single-valued cases by passing in the same value for both `min_value` and `max_value`.
@@ -242,7 +284,7 @@ inductive BoolOption :=
 /--
 The kind of output to generate (corresponds to `gcc_jit_output_kind`). Available kinds are:
 | OutputKind       | Typical Suffix           |
-|------------------|--------------------------|
+|## Note## Note## Note## Note## Note## Note|## Note## Note## Note## Note## Note## Note## Note## Note--|
 | Assembler        | .s                       |
 | ObjectFile       | .o                       |
 | DynamicLibrary   | .so, .dll, .dylib        |
