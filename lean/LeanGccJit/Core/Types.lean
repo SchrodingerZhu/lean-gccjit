@@ -58,6 +58,12 @@ def Param : Type := ParamPointed.type
 instance : Nonempty Param := ParamPointed.property
 
 opaque CasePointed : NonemptyType
+/--
+`Case` is the Lean4 representation of `gcc_jit_case`.
+A `Case` represents a case within a switch statement, and is created within a particular 
+`Context` using `Context.newCase`. Each case expresses a multivalued range of integer values. 
+You can express single-valued cases by passing in the same value for both `min_value` and `max_value`.
+-/
 def Case : Type := CasePointed.type
 instance : Nonempty Case := CasePointed.property
 
@@ -76,6 +82,10 @@ def ExtendedAsm : Type := ExtendedAsmPointed.type
 instance : Nonempty ExtendedAsm := ExtendedAsmPointed.property
 
 opaque TimerPointed : NonemptyType
+/--
+`Timer` is the Lean4 representation of `gcc_jit_timer`.
+For detailed descriptions, see [The Timing API](https://gcc.gnu.org/onlinedocs/jit/topics/performance.html#the-timing-api).
+-/
 def Timer : Type := TimerPointed.type
 instance : Nonempty Timer := TimerPointed.property
 
