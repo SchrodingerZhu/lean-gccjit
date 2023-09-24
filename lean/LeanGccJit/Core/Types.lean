@@ -2,14 +2,102 @@ namespace LeanGccJit
 namespace Core
 
 opaque ContextPointed : NonemptyType
+/--
+`Context` is the Lean4 representation of `gcc_jit_context`.
+
+See also [`Compilation Contexts`](https://gcc.gnu.org/onlinedocs/jit/topics/contexts.html#compilation-contexts).
+
+## Note
+
+The top-level of the API is the `Context` type.
+
+A `Context` instance encapsulates the state of a compilation.
+
+You can set up options on it, and add types, functions and code. 
+Invoking `Context.compile` on it gives you a `Result`.
+
+### Lifetime-management
+
+Contexts are the unit of lifetime-management within the API:
+objects have their lifetime bounded by the context they are created within, 
+and cleanup of such objects is done for you when the context is released.
+
+### Thread-safety
+
+Instances of `Context` created via `Context.acquire` are independent from each other: 
+only one thread may use a given context at once, but multiple threads could each have their own contexts without needing locks.
+
+`Context`s created via `Context.newChildContext` are related to their parent context. 
+They can be partitioned by their ultimate ancestor into independent “family trees”. 
+Only one thread within a process may use a given “family tree” of such contexts at once, 
+and if you’re using multiple threads you should provide your own locking around entire 
+such context partitions.
+
+### Error Handling
+Various kinds of errors are possible when using the API, such as mismatched types in an assignment.
+ You can only compile and get code from a context if no errors occur.
+
+Errors are printed on stderr and can be queried using `Context.getFirstError`.
+
+They typically contain the name of the API entrypoint where the error occurred, and pertinent information 
+on the problem:
+```bash
+./buggy-program: error: gcc_jit_block_add_assignment: mismatching types: assignment to i (type: int) from "hello world" (type: const char *)
+```
+In general, if an error occurs when using an API entrypoint, the low-level entrypoint returns `NULL`. 
+Unlike the original C-API, the lean wrapper is designed to be fast-fail, i.e. it will return an `IO` error
+once a step returns `NULL`.
+-/
 def Context : Type := ContextPointed.type
 instance : Nonempty Context := ContextPointed.property
 
 opaque ResultPointed : NonemptyType
+/--
+`Result` is the Lean4 representation of `gcc_jit_result`.
+
+See also [`gcc_jit_result`](https://gcc.gnu.org/onlinedocs/jit/topics/compilation.html#c.gcc_jit_result).
+
+## Note
+
+A `Result` encapsulates the result of compiling a context in-memory, and the lifetimes of any machine code 
+functions or globals that are within the result.
+-/
 def Result : Type := ResultPointed.type
 instance : Nonempty Result := ResultPointed.property
 
 opaque ObjectPointed : NonemptyType
+/--
+`Object` is the Lean4 representation of `gcc_jit_object`.
+
+See also [`Objects`](https://gcc.gnu.org/onlinedocs/jit/topics/objects.html).
+
+## Note
+Almost every entity in the API (with the exception of `Context` and `Result`) 
+is a **contextual** object, thus, inherited from `Object`.
+
+A JIT `Object`:
+- is associated with a `Context`.
+- is automatically cleaned up for you when its context is released so you 
+  don’t need to manually track and cleanup all objects, just the contexts.
+
+The `Object` hierarchy is as follows:
+- `Object`
+  - `Location`
+  - `JitType`
+    - `Struct`
+  - `Field`
+  - `Func`
+  - `Block`
+  - `RValue`
+    - `LValue`
+        - `Param`
+  - `Case`
+  - `ExtendedAsm`
+
+One can upcast a derived object to its base object via APIs such as `asObject`. For convenience,
+we provide an `AsObject` typeclass through which one can use common APIs for objects, e.g. 
+`.getDebugString` and `getContext`.
+-/
 def Object : Type := ObjectPointed.type
 instance : Nonempty Object := ObjectPointed.property
 

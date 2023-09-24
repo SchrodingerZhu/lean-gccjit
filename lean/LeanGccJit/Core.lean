@@ -16,12 +16,21 @@ import LeanGccJit.Core.Asm
 
 namespace LeanGccJit
 namespace Core
+
 class AsObject (α : Type) where
+  /-- Convert a subtype of `Object` into an `Object` -/
   asObject : α -> IO Object
 
+/-- 
+Get a string for debugging purpose. The string is typically a `C`-style
+representation of the object.
+-/
 def getDebugString [AsObject α] (x : α) : IO String := 
   AsObject.asObject x >>= Object.getDebugString
 
+/--
+Get the associated `Context` for the `Object`.
+-/
 def getContext [AsObject α] (x : α) : IO Context := 
   AsObject.asObject x >>= Object.getContext
   
