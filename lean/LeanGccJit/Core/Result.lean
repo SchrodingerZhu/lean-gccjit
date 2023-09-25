@@ -18,7 +18,7 @@ opaque Result.getCode: @& Result → @& String → IO USize
 Wrap a function address to a closure. The closure type is specified by user.
 ## Example
 ```lean
-let func : IO Unit ← res.getFunction! "jit_entry_point"
+let func : IO Unit ← res.getFunction! "jit_entry_point" 1
 ```
 ## Safety
 This function must be used with care. It is up to the user's responsibility to ensure that target function
@@ -27,7 +27,8 @@ normal function types, `IO α`, as shown in the example above, can also be used 
 a `RealWorld` as an input.
 -/
 @[extern "lean_gcc_jit_result_get_function"]
-opaque Result.getFunction! {α : Type} [Nonempty α] : @& Result → @& String → IO α
+opaque Result.getFunction! {α : Type} [Nonempty α] 
+ (res: @& Result) (name: @& String) (arity: @& Nat) : IO α
 
 /--
 Get the address of a global variable inside the compiled `Result`. One way to access the data

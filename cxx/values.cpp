@@ -135,7 +135,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_rvalue_get_type(
 {
     auto rvalue = unwrap_pointer<gcc_jit_rvalue>(rv);
     auto result = gcc_jit_rvalue_get_type(rvalue);
-    return wrap_pointer(result);
+    return lean_io_result_mk_ok(wrap_pointer(result));
 }
 
 extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_rvalue_from_uint32(
