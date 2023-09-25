@@ -174,7 +174,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_end_with_extended_asm_got
     b_lean_obj_arg loc,         /* @& Option Location */
     b_lean_obj_arg asm_str,     /* @& String */
     b_lean_obj_arg blocks,      /* @& Array Block */
-    b_lean_obj_arg fallthrough, /* @& Block */
+    b_lean_obj_arg fallthrough, /* @& Option Block */
     lean_object *               /* RealWorld */
 )
 {
@@ -184,7 +184,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_block_end_with_extended_asm_got
     auto * location = unwrap_option<gcc_jit_location>(loc);
     auto asm_str_ = lean_string_cstr(asm_str);
     auto num_blocks = static_cast<int>(blocks_len);
-    auto fallthrough_ = unwrap_pointer<gcc_jit_block>(fallthrough);
+    auto fallthrough_ = unwrap_option<gcc_jit_block>(fallthrough);
     auto * result = with_allocation<gcc_jit_block *>(blocks_len, [=](gcc_jit_block ** ptr) {
         unwrap_area(blocks_len, lean_array_cptr(blocks), ptr);
         auto asm_ = gcc_jit_block_end_with_extended_asm_goto(block_, location, asm_str_, num_blocks, ptr, fallthrough_);
