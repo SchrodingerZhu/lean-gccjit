@@ -1,7 +1,10 @@
 import LeanGccJit.Core.Types
 namespace LeanGccJit
 namespace Core
-
+/-!
+`Case` is meant to be used in a switch statement. See `LeanGccJit.Core.Block.endWithExtendedAsmGoto` 
+for detailed descriptions.
+-/
 /--
 Create a new `Case` instance for use in a switch statement. 
 
