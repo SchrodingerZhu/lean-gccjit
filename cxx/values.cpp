@@ -45,7 +45,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_struct_constructor(
         result = with_allocation<gcc_jit_rvalue *>(values_len, [=](auto * vbuffer) {
             return with_allocation<gcc_jit_field *>(fields_len, [=](auto * fbuffer) {
                 unwrap_area(fields_len, lean_array_cptr(fields_), fbuffer);
-                unwrap_area(values_len, lean_array_cptr(values), vbuffer);
+                unwrap_option_area(values_len, lean_array_cptr(values), vbuffer);
                 return gcc_jit_context_new_struct_constructor(context, location, type, fields_len, fbuffer, vbuffer);
             });
         });
@@ -71,7 +71,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_new_union_constructor(
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto location = unwrap_option<gcc_jit_location>(loc);
     auto type = unwrap_pointer<gcc_jit_type>(ty);
-    auto field_ = unwrap_pointer<gcc_jit_field>(field);
+    auto field_ = unwrap_option<gcc_jit_field>(field);
     auto value_ = lean_obj_tag(value) == 1 ? unwrap_pointer<gcc_jit_rvalue>(lean_ctor_get(value, 0)) : nullptr;
     auto result = gcc_jit_context_new_union_constructor(context, location, type, field_, value_);
     return map_notnull(result, wrap_pointer<gcc_jit_rvalue>, "failed to create union constructor");

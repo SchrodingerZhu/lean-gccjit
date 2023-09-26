@@ -58,7 +58,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_timer_pop(
 )
 {
     auto * timer = unwrap_pointer<gcc_jit_timer>(tm);
-    auto name_ = lean_string_cstr(name);
+    auto name_ = unwrap_option_str(name);
     gcc_jit_timer_pop(timer, name_);
     return lean_io_result_mk_ok(lean_box(0));
 }

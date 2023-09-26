@@ -20,8 +20,7 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_get_int_type(
     LEAN_GCC_JIT_FAILED_IF(!lean_is_scalar(num_bytes));
     auto bytes = lean_unbox(num_bytes);
     LEAN_GCC_JIT_FAILED_IF(bytes > INT_MAX);
-    auto result = gcc_jit_context_get_int_type(
-        context, static_cast<unsigned>(bytes), static_cast<int>(is_signed));
+    auto result = gcc_jit_context_get_int_type(context, static_cast<unsigned>(bytes), static_cast<int>(is_signed));
     return map_notnull(result, wrap_pointer<gcc_jit_type>, "invalid type");
 }
 #define LEAN_GCC_JIT_TYPE_TO_TYPE(NAME)                                                                          \

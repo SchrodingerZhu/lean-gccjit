@@ -61,6 +61,15 @@ static inline void unwrap_area(size_t n, lean_object * const * __restrict src, T
     }
 }
 
+template <typename T>
+static inline void unwrap_option_area(size_t n, lean_object * const * __restrict src, T ** __restrict dst)
+{
+    for (size_t i = 0; i < n; i++)
+    {
+        dst[i] = unwrap_option<T>(src[i]);
+    }
+}
+
 static inline lean_obj_res lean_option_string(const char * str)
 {
     if (str == nullptr)
