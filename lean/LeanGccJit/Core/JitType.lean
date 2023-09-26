@@ -2,38 +2,64 @@ import LeanGccJit.Core.Types
 namespace LeanGccJit
 namespace Core
 
+/--
+Access a specific type. See `LeanGccJit.Core.TypeEnum` for the list of types.
+-/
 @[extern "lean_gcc_jit_context_get_type"]
 opaque Context.getType (ctx : @& Context) (type : @& TypeEnum) : IO JitType
 
+/--
+Upcast a `JitType` to an `Object`.
+-/
 @[extern "lean_gcc_jit_type_as_object"]
 opaque JitType.asObject (ty : @& JitType) : IO Object
 
+/--
+Access the integer type of the given size.
+-/
 @[extern "lean_gcc_jit_context_get_int_type"]
 opaque Context.getIntType 
-(ctx : @& Context) (numBytes : @& Int) (isSigned: @& Bool)  : IO JitType
+(ctx : @& Context) (numBytes : @& Nat) (isSigned: @& Bool)  : IO JitType
 
+/--
+Given type `T`, get type `T*`.
+-/
 @[extern "lean_gcc_jit_type_get_pointer"]
 opaque JitType.getPointer (ty : @& JitType) : IO JitType
-
+/--
+Given type `T`, get type `const T`.
+-/
 @[extern "lean_gcc_jit_type_get_const"]
 opaque JitType.getConst (ty : @& JitType) : IO JitType
-
+/--
+Given type `T`, get type `volatile T`.
+-/
 @[extern "lean_gcc_jit_type_get_volatile"]
 opaque JitType.getVolatile (ty : @& JitType) : IO JitType
-
+/--
+Return non-zero if the two types are compatible. 
+For instance, if `uint64_t` and `unsigned long` are the same size on the target, 
+this will return non-zero.
+-/
 @[extern "lean_gcc_jit_compatible_types"]
 opaque JitType.isCompatibleWith (ty1 ty2 : @& JitType) : IO Bool
-
+/--
+Return the size of a type, in bytes. It only works on integer types for now. 
+-/
 @[extern "lean_gcc_jit_type_get_size"]
 opaque JitType.getSize (ty: @& JitType) : IO Nat
-
+/--
+Given non-void type `T`, get type `T[N]` (for a constant N).
+-/
 @[extern "lean_gcc_jit_context_new_array_type"]
 opaque Context.newArrayType 
   (ctx : @& Context) (location : @& Option Location) (elemType : @& JitType) (size : @& Nat) : IO JitType
-
+/--
+Construct a new union type, with the given name and fields.
+-/
 @[extern "lean_gcc_jit_context_new_union_type"]
 opaque Context.newUnionType 
-  (ctx : @& Context) (location : @& Option Location) (name : @& CString) (fields: @& Array Field) : IO JitType
+  (ctx : @& Context) (location : @& Option Location) (name : @& String) (fields: @& Array Field) : IO JitType
 
 @[extern "lean_gcc_jit_context_new_function_ptr_type"]
 opaque Context.newFunctionPtrType 
