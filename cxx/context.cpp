@@ -120,7 +120,9 @@ extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_context_set_logfile(
     auto context = unwrap_pointer<gcc_jit_context>(ctx);
     auto f = lean_scalar_to_int(flags);
     auto v = lean_scalar_to_int(verbosity);
-    auto h = static_cast<FILE *>(lean_get_external_data(handle));
+    auto handle_ = unwrap_option<lean_object>(handle);
+    auto h = handle_ ? static_cast<FILE *>(lean_get_external_data(handle_)) : nullptr;
+    LEAN_GCC_JIT_FAILED_IF(f != 0 || v != 0);
     gcc_jit_context_set_logfile(context, h, f, v);
     return lean_io_result_mk_ok(lean_box(0));
 }
