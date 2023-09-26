@@ -215,7 +215,7 @@ opaque Context.dumpReproducerToFile: @& Context → @& String → IO PUnit
 /--
 Enable the dumping of a specific set of internal state from the compilation, capturing the result in-memory as a buffer.
 
-Parameter “dumpname” corresponds to the equivalent gcc command-line option, without the “-fdump-” prefix. For example, to get the equivalent of `-fdump-tree-vrp1`, supply "tree-vrp1":
+Parameter "dumpName" corresponds to the equivalent gcc command-line option, without the “-fdump-” prefix. For example, to get the equivalent of `-fdump-tree-vrp1`, supply "tree-vrp1":
 ```lean4
 let buf ← DynamicBuffer.acquire
 ctx.registerDumpBuffer "tree-vrp1" buf
@@ -228,4 +228,5 @@ buf.releaseInner -- free the buffer
 See documents of `LeanGccJit.Core.DynamicBuffer` for more details.
 -/
 @[extern "lean_gcc_jit_context_register_dump_buffer"]
-opaque Context.registerDumpBuffer: @& Context → @& String → @& DynamicBuffer → IO PUnit
+opaque Context.registerDumpBuffer
+   (ctx: @& Context) (dumpName: @& String) (buf: @& DynamicBuffer) : IO PUnit
