@@ -35,6 +35,18 @@ LEAN_GCC_JIT_TYPE_TO_TYPE(pointer);
 LEAN_GCC_JIT_TYPE_TO_TYPE(const);
 LEAN_GCC_JIT_TYPE_TO_TYPE(volatile);
 
+extern "C" LEAN_EXPORT lean_obj_res lean_gcc_jit_type_get_restrict(b_lean_obj_arg type, lean_object * /* w */)
+{
+#if defined(LIBGCCJIT_HAVE_gcc_jit_type_get_restrict)
+    auto ty = unwrap_pointer<gcc_jit_type>(type);
+    auto result = gcc_jit_type_get_restrict(ty);
+    return map_notnull(result, wrap_pointer<gcc_jit_type>, "invalid type");
+#else
+    return lean_io_result_mk_error(
+        lean_mk_io_error_unsupported_operation(ENOTSUP, lean_mk_string("gcc_jit_type_get_restrict is not supported")));
+#endif
+}
+
 extern "C" LEAN_EXPORT lean_obj_res
 lean_gcc_jit_compatible_types(b_lean_obj_arg type1, b_lean_obj_arg type2, lean_object * /* w */)
 {

@@ -37,6 +37,11 @@ Given type `T`, get type `volatile T`.
 @[extern "lean_gcc_jit_type_get_volatile"]
 opaque JitType.getVolatile (ty : @& JitType) : IO JitType
 /--
+Given type `T`, get type `restrict T`.
+-/
+@[extern "lean_gcc_jit_type_get_restrict"]
+opaque JitType.getRestrict (ty : @& JitType) : IO JitType
+/--
 Return non-zero if the two types are compatible. 
 For instance, if `uint64_t` and `unsigned long` are the same size on the target, 
 this will return non-zero.
