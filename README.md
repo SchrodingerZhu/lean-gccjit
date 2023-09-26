@@ -8,7 +8,7 @@ libgccjit bindings for Lean4.
 
 ## How to use
 
-- Install [`libgccjit`]:
+- Install `libgccjit`:
   ```bash
   sudo pacman -S libgccjit # Arch Linux
   sudo apt install libgccjit-12-dev # Debian (bookworm)
@@ -16,12 +16,12 @@ libgccjit bindings for Lean4.
 
 - Add this package to `lakefile.lean`:
   ```lean
-  require «doc-gen4» from git "https://github.com/schrodingerzhu/lean-gccjit" @ "0.1.0"
+  require «lean-gccjit» from git "https://github.com/schrodingerzhu/lean-gccjit" @ "0.1.0"
   ```
 
 - Add `libgccjit` to binary dependency (this is required because `extern_lib` does not handle shared libraries yet):
   ```lean
-  lean_exe «lmy-exe» {
+  lean_exe «my-exe» {
     root := `Main
     moreLinkArgs := #["-lgccjit"] -- add this line
   }
