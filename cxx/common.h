@@ -221,6 +221,6 @@ static inline auto with_allocation(size_t n, F f)
     {                                                                      \
         auto * src_ = unwrap_pointer<gcc_jit_##SRC>(src);                  \
         auto result = gcc_jit_##SRC##WORD##_##INFO(src_);                  \
-        return lean_box(result);                                           \
+        return lean_io_result_mk_ok(lean_box(result));                     \
     }
 } // namespace lean_gccjit
