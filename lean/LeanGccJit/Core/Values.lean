@@ -83,7 +83,7 @@ Returns the global itself.
 -/
 @[extern "lean_gcc_jit_global_set_initializer_rvalue"]
 opaque Global.setInitializerRValue 
-  (glob : @& LValue) (value: @& Array RValue) : IO LValue
+  (glob : @& LValue) (value: @& RValue) : IO LValue
 
 /--
 Set an initializer for global using the memory content pointed by `value`. The global `LValue` must be an array of an integral type. 
