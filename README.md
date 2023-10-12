@@ -16,7 +16,7 @@ libgccjit bindings for Lean4.
 
 - Add this package to `lakefile.lean`:
   ```lean
-  require «lean-gccjit» from git "https://github.com/schrodingerzhu/lean-gccjit" @ "0.1.1"
+  require «lean-gccjit» from git "https://github.com/schrodingerzhu/lean-gccjit" @ "0.1.2"
   ```
 
 - Add `libgccjit` to binary dependency (this is required because `extern_lib` does not handle shared libraries yet):
