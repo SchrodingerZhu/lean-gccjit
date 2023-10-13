@@ -26,7 +26,10 @@ def flags : SchedulerM (Array String) := do
 def objectFile (pkg : Package) (name : String) : SchedulerM (BuildJob FilePath) := do
   let oFile := pkg.buildDir / "cxx" / (name ++ ".o")
   let srcJob ← inputFile <| pkg.dir / "cxx" / (name ++ ".cpp")
-  buildO (name ++ ".cpp") oFile srcJob #[] (← flags) "c++"
+  let compiler := match ← IO.getEnv "CXX" with
+    | some cxx => cxx
+    | none => "c++"
+  buildO (name ++ ".cpp") oFile srcJob #[] (← flags) compiler
 
 target object.o pkg : FilePath := objectFile pkg "object"
 
